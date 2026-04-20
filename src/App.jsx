@@ -27,39 +27,25 @@ export default function App() {
   }
 
   async function fetchTransactions(userId) {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("movimentacoes")
       .select("*")
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
-    if (!error) {
-      setTransactions(data || []);
-    }
+    setTransactions(data || []);
   }
 
   async function addTransaction() {
     if (!valor || !user) return;
 
-    const valorNumero = Number(valor);
-
-    if (Number.isNaN(valorNumero) || valorNumero <= 0) {
-      alert("Digite um valor válido.");
-      return;
-    }
-
-    const { error } = await supabase.from("movimentacoes").insert([
+    await supabase.from("movimentacoes").insert([
       {
         user_id: user.id,
-        valor: valorNumero,
+        valor: Number(valor),
         tipo,
       },
     ]);
-
-    if (error) {
-      alert("Erro ao adicionar lançamento.");
-      return;
-    }
 
     setValor("");
     fetchTransactions(user.id);
@@ -87,69 +73,38 @@ export default function App() {
     const email = prompt("Digite seu email");
     if (!email) return;
 
-    const { error } = await supabase.auth.signInWithOtp({ email });
-
-    if (error) {
-      alert("Erro ao enviar link.");
-      return;
-    }
-
+    await supabase.auth.signInWithOtp({ email });
     alert("Link enviado para o email.");
   }
 
   async function handleLogout() {
     await supabase.auth.signOut();
     setUser(null);
-    setTransactions([]);
   }
 
-  function openWhatsApp() {
-    window.open(
-      "https://wa.me/5511987835736?text=Olá,%20vim%20pelo%20Vertex360%20e%20quero%20falar%20sobre%20meu%20planejamento.",
-      "_blank"
-    );
-  }
-
-  function openMentoria() {
-    window.open(
-      "https://wa.me/5511987835736?text=Olá,%20quero%20agendar%20uma%20mentoria%20pelo%20Vertex360.",
-      "_blank"
-    );
-  }
-
+  // LOGIN
   if (!user) {
     return (
-      <div
-        style={{
-          height: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "white",
-        }}
-      >
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <button onClick={handleLogin}>Entrar no Vertex360</button>
       </div>
     );
   }
 
+  // APP
   return (
     <div className="app">
       <div className="sidebar">
         <h1>Vertex360</h1>
         <p>Planejamento Financeiro</p>
 
-        <div className="menu">
-          <button>Dashboard</button>
-          <button>Lançamentos</button>
-          <button>Metas</button>
-          <button>Configurações</button>
-        </div>
+        <button>Dashboard</button>
+        <button>Lançamentos</button>
+        <button>Metas</button>
+        <button>Configurações</button>
 
-        <div className="sidebar-footer">
-          <p>{user.email}</p>
-          <button onClick={handleLogout}>Sair</button>
-        </div>
+        <p style={{ marginTop: "auto" }}>{user.email}</p>
+        <button onClick={handleLogout}>Sair</button>
       </div>
 
       <div className="main-content">
@@ -183,26 +138,33 @@ export default function App() {
             <div style={{ width: `${progresso}%` }} />
           </div>
 
-          <p>
-            {formatMoney(receita)} de {formatMoney(meta)}
-          </p>
+          <p>{formatMoney(receita)} de {formatMoney(meta)}</p>
         </div>
 
+        {/* WHATSAPP E MENTORIA */}
         <div className="support-section">
-          <div className="support-card support-card--whatsapp">
-            <div>
-              <h3>WhatsApp</h3>
-              <p>Fale direto comigo para tirar dúvidas e receber suporte.</p>
-            </div>
-            <button onClick={openWhatsApp}>Falar agora</button>
+          <div className="support-card">
+            <h3>WhatsApp</h3>
+            <p>Fale comigo direto</p>
+
+            <a
+              href="https://wa.me/5511987835736?text=Olá,%20vim%20pelo%20Vertex360"
+              target="_blank"
+            >
+              <button>Falar agora</button>
+            </a>
           </div>
 
-          <div className="support-card support-card--mentoria">
-            <div>
-              <h3>Agendar mentoria</h3>
-              <p>Marque uma conversa para análise e direcionamento financeiro.</p>
-            </div>
-            <button onClick={openMentoria}>Agendar</button>
+          <div className="support-card">
+            <h3>Mentoria</h3>
+            <p>Agende uma conversa</p>
+
+            <a
+              href="https://wa.me/5511987835736?text=Quero%20agendar%20mentoria"
+              target="_blank"
+            >
+              <button>Agendar</button>
+            </a>
           </div>
         </div>
 
@@ -220,23 +182,6 @@ export default function App() {
           </select>
 
           <button onClick={addTransaction}>Adicionar</button>
-        </div>
-
-        <div className="historico">
-          <h3>Histórico</h3>
-
-          {transactions.length === 0 ? (
-            <div className="item">Nenhum lançamento ainda.</div>
-          ) : (
-            transactions.map((t) => (
-              <div key={t.id} className="item">
-                <span>
-                  {t.tipo} - {new Date(t.created_at).toLocaleDateString("pt-BR")}
-                </span>
-                <strong>{formatMoney(t.valor)}</strong>
-              </div>
-            ))
-          )}
         </div>
       </div>
     </div>
