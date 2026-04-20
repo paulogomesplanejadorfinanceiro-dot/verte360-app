@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-// 🔗 SUA CONEXÃO
+// 🔗 conexão Supabase
 const supabase = createClient(
   "https://pnurseudpiyyosulmwrf.supabase.co",
   "sb_publishable_YaOLy2InC7wJuVNjqvg8Lw_3pRLwnAY"
@@ -14,14 +14,14 @@ export default function App() {
   const [receita, setReceita] = useState(0);
   const [despesa, setDespesa] = useState(0);
 
-  // 🔐 pega usuário logado
+  // 🔐 sessão
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setUser(data.session?.user || null);
     });
   }, []);
 
-  // 📊 buscar dados do banco
+  // 📊 carregar dados
   async function carregarDados() {
     if (!user) return;
 
@@ -50,12 +50,11 @@ export default function App() {
     setDespesa(totalDespesa);
   }
 
-  // 🔁 sempre que usuário carregar
   useEffect(() => {
     carregarDados();
   }, [user]);
 
-  // ➕ adicionar valor
+  // ➕ adicionar
   async function adicionar() {
     if (!valor) return;
 
@@ -68,8 +67,8 @@ export default function App() {
     ]);
 
     if (error) {
+      alert("Erro ao salvar");
       console.log(error);
-      alert("Erro ao salvar!");
       return;
     }
 
@@ -81,8 +80,10 @@ export default function App() {
 
   return (
     <div style={styles.container}>
-      <h1>Vertex360</h1>
-      <p>{user?.email}</p>
+      <div style={styles.header}>
+        <h1>Vertex360</h1>
+        <p>{user?.email}</p>
+      </div>
 
       <div style={styles.cards}>
         <div style={styles.card}>
@@ -95,7 +96,7 @@ export default function App() {
           <p>R$ {despesa.toFixed(2)}</p>
         </div>
 
-        <div style={styles.card}>
+        <div style={styles.cardHighlight}>
           <h3>Saldo</h3>
           <p>R$ {saldo.toFixed(2)}</p>
         </div>
@@ -103,46 +104,98 @@ export default function App() {
 
       <div style={styles.form}>
         <input
+          style={styles.input}
           placeholder="Digite o valor"
+          type="number"
           value={valor}
           onChange={(e) => setValor(e.target.value)}
         />
 
-        <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
+        <select
+          style={styles.select}
+          value={tipo}
+          onChange={(e) => setTipo(e.target.value)}
+        >
           <option value="receita">Receita</option>
           <option value="despesa">Despesa</option>
         </select>
 
-        <button onClick={adicionar}>Adicionar</button>
+        <button style={styles.button} onClick={adicionar}>
+          Adicionar
+        </button>
       </div>
     </div>
   );
 }
 
-// 🎨 estilo simples (depois melhoramos)
+// 🎨 DESIGN PROFISSIONAL
 const styles = {
   container: {
-    textAlign: "center",
-    padding: "40px",
-    background: "linear-gradient(to right, #1e3c72, #2a5298)",
     minHeight: "100vh",
+    padding: "40px 20px",
+    fontFamily: "Arial, sans-serif",
     color: "#fff",
+    background: "linear-gradient(135deg, #00f2fe, #4facfe)",
+    textAlign: "center",
   },
+
+  header: {
+    marginBottom: "30px",
+  },
+
   cards: {
     display: "flex",
     justifyContent: "center",
     gap: "20px",
-    margin: "30px 0",
+    flexWrap: "wrap",
+    marginBottom: "30px",
   },
+
   card: {
-    background: "#ffffff22",
-    padding: "20px",
-    borderRadius: "10px",
-    width: "120px",
+    background: "rgba(255,255,255,0.15)",
+    padding: "25px",
+    borderRadius: "15px",
+    width: "140px",
+    backdropFilter: "blur(10px)",
+    boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
   },
+
+  cardHighlight: {
+    background: "rgba(255,255,255,0.25)",
+    padding: "25px",
+    borderRadius: "15px",
+    width: "140px",
+    backdropFilter: "blur(10px)",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
+  },
+
   form: {
     display: "flex",
     justifyContent: "center",
     gap: "10px",
+    flexWrap: "wrap",
+  },
+
+  input: {
+    padding: "12px",
+    borderRadius: "10px",
+    border: "none",
+    width: "150px",
+  },
+
+  select: {
+    padding: "12px",
+    borderRadius: "10px",
+    border: "none",
+  },
+
+  button: {
+    padding: "12px 20px",
+    borderRadius: "10px",
+    border: "none",
+    background: "#ffffff",
+    color: "#0072ff",
+    fontWeight: "bold",
+    cursor: "pointer",
   },
 };
