@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-// 🔑 SUAS CHAVES
 const supabase = createClient(
   "https://pnurseudpiyyosulmwrf.supabase.co",
   "sb_publishable_YaOLy2InC7wJuVNjqvg8Lw_3pRLwnAY"
@@ -9,219 +8,148 @@ const supabase = createClient(
 
 export default function App() {
   const [user, setUser] = useState(null);
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [valor, setValor] = useState("");
+  const [tipo, setTipo] = useState("receita");
+  const [dados, setDados] = useState([]);
 
-  // 🔄 verificar sessão
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user || null);
+      const usuario = data.session?.user;
+      setUser(usuario);
+      if (usuario) carregarDados(usuario.id);
     });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
-    });
-
-    return () => subscription.unsubscribe();
   }, []);
 
-  // 🧾 cadastro
-  async function cadastrar() {
-    setLoading(true);
+  async function carregarDados(userId) {
+    const { data } = await supabase
+      .from("movimentacoes")
+      .select("*")
+      .eq("user_id", userId);
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password: senha,
-    });
-
-    if (error) {
-      alert(error.message);
-    } else {
-      alert("Cadastro realizado com sucesso");
-    }
-
-    setLoading(false);
+    setDados(data || []);
   }
 
-  // 🔐 login
-  async function entrar() {
-    setLoading(true);
+  async function adicionar() {
+    if (!valor) return;
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password: senha,
-    });
+    await supabase.from("movimentacoes").insert([
+      {
+        user_id: user.id,
+        tipo,
+        valor: parseFloat(valor),
+      },
+    ]);
 
-    if (error) {
-      alert(error.message);
-    }
-
-    setLoading(false);
+    setValor("");
+    carregarDados(user.id);
   }
 
-  // 🚪 logout
-  async function sair() {
-    await supabase.auth.signOut();
-  }
+  const receita = dados
+    .filter((d) => d.tipo === "receita")
+    .reduce((acc, d) => acc + d.valor, 0);
 
-  // 🔥 TELA LOGADO
-  if (user) {
-    return (
-      <div style={styles.page}>
-        <div style={styles.dashboard}>
-          <h1 style={styles.logo}>Vertex360</h1>
+  const despesa = dados
+    .filter((d) => d.tipo === "despesa")
+    .reduce((acc, d) => acc + d.valor, 0);
 
-          <p style={styles.user}>Usuário: {user.email}</p>
+  const saldo = receita - despesa;
 
-          <div style={styles.cards}>
-            <div style={styles.card}>
-              <h3>Receita</h3>
-              <p>R$ 0,00</p>
-            </div>
+  return (
+    <div style={styles.container}>
+      <h1 style={styles.title}>Vertex360</h1>
 
-            <div style={styles.card}>
-              <h3>Despesas</h3>
-              <p>R$ 0,00</p>
-            </div>
+      {user && <p style={styles.user}>{user.email}</p>}
 
-            <div style={styles.card}>
-              <h3>Meta</h3>
-              <p>0%</p>
-            </div>
-          </div>
+      <div style={styles.cards}>
+        <div style={styles.card}>
+          <h3>Receita</h3>
+          <p>R$ {receita.toFixed(2)}</p>
+        </div>
 
-          <button onClick={sair} style={styles.logout}>
-            Sair
-          </button>
+        <div style={styles.card}>
+          <h3>Despesa</h3>
+          <p>R$ {despesa.toFixed(2)}</p>
+        </div>
+
+        <div style={styles.card}>
+          <h3>Saldo</h3>
+          <p>R$ {saldo.toFixed(2)}</p>
         </div>
       </div>
-    );
-  }
 
-  // 🔥 TELA LOGIN
-  return (
-    <div style={styles.page}>
-      <div style={styles.loginBox}>
-        <h1 style={styles.logoDark}>Vertex360</h1>
-
+      <div style={styles.form}>
         <input
-          type="email"
-          placeholder="Seu email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
           style={styles.input}
+          type="number"
+          placeholder="Digite o valor"
+          value={valor}
+          onChange={(e) => setValor(e.target.value)}
         />
 
-        <input
-          type="password"
-          placeholder="Sua senha"
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-          style={styles.input}
-        />
+        <select
+          style={styles.select}
+          onChange={(e) => setTipo(e.target.value)}
+        >
+          <option value="receita">Receita</option>
+          <option value="despesa">Despesa</option>
+        </select>
 
-        <button onClick={entrar} style={styles.btn} disabled={loading}>
-          {loading ? "Entrando..." : "Entrar"}
-        </button>
-
-        <button onClick={cadastrar} style={styles.btn2} disabled={loading}>
-          {loading ? "Carregando..." : "Criar conta"}
+        <button style={styles.button} onClick={adicionar}>
+          Adicionar
         </button>
       </div>
     </div>
   );
 }
 
-// 🎨 ESTILO PROFISSIONAL
 const styles = {
-  page: {
-    minHeight: "100vh",
-    background: "linear-gradient(135deg, #0b1f43, #0b5cff)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    fontFamily: "Arial",
-  },
-
-  loginBox: {
-    background: "#ffffff",
-    padding: 30,
-    borderRadius: 15,
-    width: 320,
-    textAlign: "center",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-  },
-
-  input: {
-    width: "100%",
-    padding: 12,
-    marginTop: 10,
-    borderRadius: 8,
-    border: "1px solid #ccc",
-  },
-
-  btn: {
-    width: "100%",
-    padding: 12,
-    marginTop: 15,
-    background: "#0b5cff",
+  container: {
+    background: "linear-gradient(135deg, #0b3d91, #1e90ff)",
     color: "#fff",
-    border: "none",
-    borderRadius: 8,
-    cursor: "pointer",
-    fontWeight: "bold",
-  },
-
-  btn2: {
-    width: "100%",
-    padding: 12,
-    marginTop: 10,
-    background: "#eee",
-    border: "none",
-    borderRadius: 8,
-    cursor: "pointer",
-  },
-
-  dashboard: {
+    height: "100vh",
     textAlign: "center",
-    color: "#fff",
+    paddingTop: "50px",
   },
-
-  logo: {
-    fontSize: 32,
-    fontWeight: "bold",
+  title: {
+    fontSize: "32px",
+    marginBottom: "10px",
   },
-
-  logoDark: {
-    color: "#0b1f43",
-  },
-
   user: {
-    marginTop: 10,
+    opacity: 0.8,
   },
-
   cards: {
     display: "flex",
-    gap: 15,
-    marginTop: 20,
     justifyContent: "center",
+    gap: "20px",
+    marginTop: "30px",
   },
-
   card: {
-    background: "rgba(255,255,255,0.2)",
-    padding: 20,
-    borderRadius: 10,
-    width: 120,
+    background: "rgba(255,255,255,0.15)",
+    padding: "20px",
+    borderRadius: "12px",
+    minWidth: "120px",
   },
-
-  logout: {
-    marginTop: 20,
-    padding: 10,
-    borderRadius: 8,
+  form: {
+    marginTop: "40px",
+  },
+  input: {
+    padding: "10px",
+    borderRadius: "8px",
     border: "none",
+    marginRight: "10px",
+  },
+  select: {
+    padding: "10px",
+    borderRadius: "8px",
+    marginRight: "10px",
+  },
+  button: {
+    padding: "10px 20px",
+    borderRadius: "8px",
+    border: "none",
+    background: "#fff",
+    color: "#0b3d91",
+    fontWeight: "bold",
     cursor: "pointer",
   },
 };
