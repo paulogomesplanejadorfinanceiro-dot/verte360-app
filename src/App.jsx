@@ -22,9 +22,9 @@ function formatDate(dateString) {
   });
 }
 
-function formatShortDate(dateString) {
-  if (!dateString) return "";
-  return new Date(dateString).toLocaleDateString("pt-BR", {
+function formatShortDate(dateValue) {
+  const d = new Date(dateValue);
+  return d.toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "2-digit",
   });
@@ -79,7 +79,7 @@ export default function App() {
         if (usuario) {
           await carregarDados(usuario.id);
         }
-      } catch (error) {
+      } catch {
         setMensagem("Falha ao iniciar o app.");
         setCheckingSession(false);
       }
@@ -131,12 +131,11 @@ export default function App() {
 
       if (error) {
         setMensagem("Erro no cadastro: " + error.message);
-        setLoading(false);
         return;
       }
 
       setMensagem("Cadastro realizado. Verifique seu e-mail para confirmar.");
-    } catch (error) {
+    } catch {
       setMensagem("Falha inesperada no cadastro.");
     } finally {
       setLoading(false);
@@ -155,12 +154,11 @@ export default function App() {
 
       if (error) {
         setMensagem("Erro no login: " + error.message);
-        setLoading(false);
         return;
       }
 
       setMensagem("Login realizado com sucesso.");
-    } catch (error) {
+    } catch {
       setMensagem("Falha inesperada no login.");
     } finally {
       setLoading(false);
@@ -198,14 +196,13 @@ export default function App() {
 
       if (error) {
         setMensagem("Erro ao salvar: " + error.message);
-        setLoading(false);
         return;
       }
 
       setValor("");
       setMensagem("Lançamento salvo com sucesso.");
       await carregarDados(user.id);
-    } catch (error) {
+    } catch {
       setMensagem("Falha inesperada ao salvar.");
     } finally {
       setLoading(false);
@@ -552,7 +549,7 @@ const styles = {
   loadingScreen: {
     minHeight: "100vh",
     background:
-      "radial-gradient(circle at top left, #31e1ff 0%, #0b6cff 30%, #04225f 70%, #02122f 100%)",
+      "radial-gradient(circle at top left, #163b8f 0%, #0a2259 45%, #050c1f 100%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -560,18 +557,19 @@ const styles = {
   },
   loadingCard: {
     color: "#fff",
-    background: "rgba(255,255,255,0.12)",
-    border: "1px solid rgba(255,255,255,0.18)",
+    background: "rgba(255,255,255,0.10)",
+    border: "1px solid rgba(255,255,255,0.14)",
     padding: "24px 32px",
     borderRadius: 20,
     fontSize: 18,
     fontWeight: 700,
-    boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+    boxShadow: "0 20px 60px rgba(0,0,0,0.28)",
   },
 
   authBg: {
     minHeight: "100vh",
-    background: "radial-gradient(circle at top, #23d5ff 0%, #0b59ff 38%, #031b4e 100%)",
+    background:
+      "radial-gradient(circle at top, #1d5eff 0%, #0c2d7a 40%, #050c1f 100%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -581,12 +579,12 @@ const styles = {
   authCard: {
     width: "100%",
     maxWidth: 430,
-    background: "rgba(255,255,255,0.14)",
-    border: "1px solid rgba(255,255,255,0.18)",
+    background: "rgba(255,255,255,0.10)",
+    border: "1px solid rgba(255,255,255,0.14)",
     backdropFilter: "blur(18px)",
     borderRadius: 28,
     padding: 32,
-    boxShadow: "0 25px 70px rgba(0,0,0,0.28)",
+    boxShadow: "0 25px 70px rgba(0,0,0,0.32)",
     color: "#fff",
   },
   logoBadge: {
@@ -640,18 +638,18 @@ const styles = {
     cursor: "pointer",
   },
   secondaryButton: {
-    border: "1px solid rgba(255,255,255,0.25)",
+    border: "1px solid rgba(255,255,255,0.20)",
     borderRadius: 14,
     padding: "14px 18px",
-    background: "rgba(255,255,255,0.08)",
+    background: "rgba(255,255,255,0.06)",
     color: "#fff",
     fontWeight: 800,
     cursor: "pointer",
   },
   messageBox: {
     marginTop: 16,
-    background: "rgba(255,255,255,0.12)",
-    border: "1px solid rgba(255,255,255,0.18)",
+    background: "rgba(255,255,255,0.10)",
+    border: "1px solid rgba(255,255,255,0.14)",
     borderRadius: 14,
     padding: 12,
     fontSize: 14,
@@ -660,7 +658,7 @@ const styles = {
   appBg: {
     minHeight: "100vh",
     background:
-      "radial-gradient(circle at top left, #31e1ff 0%, #0b6cff 30%, #04225f 70%, #02122f 100%)",
+      "radial-gradient(circle at top left, #1f6bff 0%, #0d2f7c 32%, #081735 68%, #030814 100%)",
     padding: 20,
     fontFamily: "Arial, sans-serif",
   },
@@ -673,8 +671,8 @@ const styles = {
   },
   sidebar: {
     minHeight: "calc(100vh - 40px)",
-    background: "rgba(255,255,255,0.12)",
-    border: "1px solid rgba(255,255,255,0.18)",
+    background: "rgba(255,255,255,0.08)",
+    border: "1px solid rgba(255,255,255,0.12)",
     backdropFilter: "blur(18px)",
     borderRadius: 28,
     padding: 24,
@@ -682,7 +680,7 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.18)",
+    boxShadow: "0 20px 60px rgba(0,0,0,0.24)",
   },
   sidebarBrand: {
     fontSize: 28,
@@ -699,13 +697,13 @@ const styles = {
     gap: 10,
   },
   sidebarItemActive: {
-    background: "linear-gradient(135deg, rgba(255,255,255,0.26), rgba(255,255,255,0.12))",
+    background: "linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08))",
     borderRadius: 14,
     padding: "14px 16px",
     fontWeight: 700,
   },
   sidebarItem: {
-    background: "rgba(255,255,255,0.06)",
+    background: "rgba(255,255,255,0.05)",
     borderRadius: 14,
     padding: "14px 16px",
     opacity: 0.9,
@@ -724,7 +722,7 @@ const styles = {
     border: "none",
     borderRadius: 14,
     padding: "12px 14px",
-    background: "rgba(255,255,255,0.12)",
+    background: "rgba(255,255,255,0.10)",
     color: "#fff",
     fontWeight: 700,
     cursor: "pointer",
@@ -752,8 +750,8 @@ const styles = {
     opacity: 0.85,
   },
   metaBox: {
-    background: "rgba(255,255,255,0.12)",
-    border: "1px solid rgba(255,255,255,0.18)",
+    background: "rgba(255,255,255,0.08)",
+    border: "1px solid rgba(255,255,255,0.12)",
     borderRadius: 18,
     padding: 14,
     minWidth: 210,
@@ -778,8 +776,8 @@ const styles = {
   },
   messageBanner: {
     marginBottom: 18,
-    background: "rgba(255,255,255,0.12)",
-    border: "1px solid rgba(255,255,255,0.18)",
+    background: "rgba(255,255,255,0.10)",
+    border: "1px solid rgba(255,255,255,0.14)",
     borderRadius: 16,
     padding: 14,
     fontWeight: 700,
@@ -791,12 +789,12 @@ const styles = {
     gap: 18,
   },
   statCard: {
-    background: "linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08))",
-    border: "1px solid rgba(255,255,255,0.18)",
+    background: "linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0.05))",
+    border: "1px solid rgba(255,255,255,0.14)",
     backdropFilter: "blur(18px)",
     borderRadius: 24,
     padding: 22,
-    boxShadow: "0 20px 60px rgba(0,0,0,0.12)",
+    boxShadow: "0 20px 60px rgba(0,0,0,0.18)",
   },
   statTitle: {
     opacity: 0.82,
@@ -812,7 +810,7 @@ const styles = {
     display: "inline-block",
     padding: "8px 12px",
     borderRadius: 999,
-    background: "rgba(124,255,178,0.16)",
+    background: "rgba(124,255,178,0.12)",
     color: "#7CFFB2",
     fontSize: 12,
     fontWeight: 700,
@@ -821,7 +819,7 @@ const styles = {
     display: "inline-block",
     padding: "8px 12px",
     borderRadius: 999,
-    background: "rgba(255,159,159,0.14)",
+    background: "rgba(255,159,159,0.12)",
     color: "#FFB2B2",
     fontSize: 12,
     fontWeight: 700,
@@ -830,14 +828,14 @@ const styles = {
     display: "inline-block",
     padding: "8px 12px",
     borderRadius: 999,
-    background: "rgba(183,234,255,0.16)",
+    background: "rgba(183,234,255,0.12)",
     color: "#D6F7FF",
     fontSize: 12,
     fontWeight: 700,
   },
   progressWrap: {
     height: 10,
-    background: "rgba(255,255,255,0.12)",
+    background: "rgba(255,255,255,0.10)",
     borderRadius: 999,
     overflow: "hidden",
   },
@@ -854,15 +852,15 @@ const styles = {
     marginTop: 18,
   },
   panel: {
-    background: "linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.07))",
-    border: "1px solid rgba(255,255,255,0.18)",
+    background: "linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05))",
+    border: "1px solid rgba(255,255,255,0.14)",
     borderRadius: 24,
     padding: 22,
     backdropFilter: "blur(18px)",
   },
   panelLarge: {
-    background: "linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.07))",
-    border: "1px solid rgba(255,255,255,0.18)",
+    background: "linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05))",
+    border: "1px solid rgba(255,255,255,0.14)",
     borderRadius: 24,
     padding: 22,
     backdropFilter: "blur(18px)",
@@ -923,7 +921,7 @@ const styles = {
   },
   progressWrapLarge: {
     height: 14,
-    background: "rgba(255,255,255,0.12)",
+    background: "rgba(255,255,255,0.10)",
     borderRadius: 999,
     overflow: "hidden",
     marginBottom: 12,
