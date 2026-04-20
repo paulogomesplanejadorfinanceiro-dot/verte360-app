@@ -14,10 +14,15 @@ export default function App() {
   }, []);
 
   async function getUser() {
-    const { data } = await supabase.auth.getUser();
-    setUser(data.user);
+    const { data, error } = await supabase.auth.getUser();
 
-    if (data.user) {
+    if (error) {
+      console.log("Erro ao pegar usuário:", error);
+      return;
+    }
+
+    if (data?.user) {
+      setUser(data.user);
       fetchTransactions(data.user.id);
     }
   }
@@ -99,21 +104,26 @@ export default function App() {
     setTransactions([]);
   }
 
-if (!user) {
-  return (
-    <div
-      style={{
-        height: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "white",
-      }}
-    >
-      <button onClick={handleLogin}>Entrar no Vertex360</button>
-    </div>
-  );
-}
+  // 🔥 LOGIN (NÃO LOGADO)
+  if (!user) {
+    return (
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "white",
+        }}
+      >
+        <button onClick={handleLogin}>
+          Entrar no Vertex360
+        </button>
+      </div>
+    );
+  }
+
+  // 🔥 APP (LOGADO)
   return (
     <div className="app">
       <DashboardSupport user={user} />
@@ -142,7 +152,6 @@ if (!user) {
           type="number"
           value={meta}
           onChange={(e) => setMeta(Number(e.target.value))}
-          placeholder="Digite sua meta"
         />
 
         <div className="progress-bar">
@@ -182,7 +191,8 @@ if (!user) {
           transactions.map((t) => (
             <div key={t.id} className="item">
               <span>
-                {t.tipo} - {t.created_at ? new Date(t.created_at).toLocaleDateString("pt-BR") : ""}
+                {t.tipo} -{" "}
+                {new Date(t.created_at).toLocaleDateString("pt-BR")}
               </span>
               <strong>{formatMoney(t.valor)}</strong>
             </div>
