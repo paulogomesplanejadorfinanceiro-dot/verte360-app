@@ -30,8 +30,8 @@ function formatShortDate(dateString) {
   });
 }
 
-function getDayKey(dateString) {
-  const d = new Date(dateString);
+function getDayKey(dateValue) {
+  const d = new Date(dateValue);
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
@@ -52,9 +52,10 @@ export default function App() {
   const [mensagem, setMensagem] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [metaMensal, setMetaMensal] = useState(
-    Number(localStorage.getItem("vertex360_meta_mensal") || 3000)
-  );
+  const [metaMensal, setMetaMensal] = useState(() => {
+    const salva = localStorage.getItem("vertex360_meta_mensal");
+    return salva ? Number(salva) : 3000;
+  });
 
   useEffect(() => {
     localStorage.setItem("vertex360_meta_mensal", String(metaMensal || 0));
@@ -62,22 +63,26 @@ export default function App() {
 
   useEffect(() => {
     async function init() {
-      const { data, error } = await supabase.auth.getSession();
+      try {
+        const { data, error } = await supabase.auth.getSession();
 
-      if (error) {
-        setMensagem("Erro ao carregar sessão.");
+        if (error) {
+          setMensagem("Erro ao carregar sessão: " + error.message);
+          setCheckingSession(false);
+          return;
+        }
+
+        const usuario = data.session?.user || null;
+        setUser(usuario);
         setCheckingSession(false);
-        return;
+
+        if (usuario) {
+          await carregarDados(usuario.id);
+        }
+      } catch (error) {
+        setMensagem("Falha ao iniciar o app.");
+        setCheckingSession(false);
       }
-
-      const usuario = data.session?.user || null;
-      setUser(usuario);
-
-      if (usuario) {
-        await carregarDados(usuario.id);
-      }
-
-      setCheckingSession(false);
     }
 
     init();
@@ -107,6 +112,7 @@ export default function App() {
 
     if (error) {
       setMensagem("Erro ao carregar dados: " + error.message);
+      setDados([]);
       return;
     }
 
@@ -117,38 +123,48 @@ export default function App() {
     setMensagem("");
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password: senha,
-    });
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password: senha,
+      });
 
-    if (error) {
-      setMensagem("Erro no cadastro: " + error.message);
+      if (error) {
+        setMensagem("Erro no cadastro: " + error.message);
+        setLoading(false);
+        return;
+      }
+
+      setMensagem("Cadastro realizado. Verifique seu e-mail para confirmar.");
+    } catch (error) {
+      setMensagem("Falha inesperada no cadastro.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setMensagem("Cadastro realizado. Verifique seu e-mail para confirmar.");
-    setLoading(false);
   }
 
   async function entrar() {
     setMensagem("");
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password: senha,
-    });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password: senha,
+      });
 
-    if (error) {
-      setMensagem("Erro no login: " + error.message);
+      if (error) {
+        setMensagem("Erro no login: " + error.message);
+        setLoading(false);
+        return;
+      }
+
+      setMensagem("Login realizado com sucesso.");
+    } catch (error) {
+      setMensagem("Falha inesperada no login.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setMensagem("Login realizado com sucesso.");
-    setLoading(false);
   }
 
   async function sair() {
@@ -171,41 +187,42 @@ export default function App() {
 
     setLoading(true);
 
-    const { error } = await supabase.from("movimentacoes").insert([
-      {
-        user_id: user.id,
-        tipo,
-        valor: Number(valor),
-      },
-    ]);
+    try {
+      const { error } = await supabase.from("movimentacoes").insert([
+        {
+          user_id: user.id,
+          tipo,
+          valor: Number(valor),
+        },
+      ]);
 
-    if (error) {
-      setMensagem("Erro ao salvar: " + error.message);
+      if (error) {
+        setMensagem("Erro ao salvar: " + error.message);
+        setLoading(false);
+        return;
+      }
+
+      setValor("");
+      setMensagem("Lançamento salvo com sucesso.");
+      await carregarDados(user.id);
+    } catch (error) {
+      setMensagem("Falha inesperada ao salvar.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setValor("");
-    setMensagem("Lançamento salvo com sucesso.");
-    await carregarDados(user.id);
-    setLoading(false);
   }
 
-  const receita = useMemo(
-    () =>
-      dados
-        .filter((item) => item.tipo === "receita")
-        .reduce((acc, item) => acc + Number(item.valor), 0),
-    [dados]
-  );
+  const receita = useMemo(() => {
+    return dados
+      .filter((item) => item.tipo === "receita")
+      .reduce((acc, item) => acc + Number(item.valor), 0);
+  }, [dados]);
 
-  const despesa = useMemo(
-    () =>
-      dados
-        .filter((item) => item.tipo === "despesa")
-        .reduce((acc, item) => acc + Number(item.valor), 0),
-    [dados]
-  );
+  const despesa = useMemo(() => {
+    return dados
+      .filter((item) => item.tipo === "despesa")
+      .reduce((acc, item) => acc + Number(item.valor), 0);
+  }, [dados]);
 
   const saldo = receita - despesa;
 
@@ -221,9 +238,9 @@ export default function App() {
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(hoje.getDate() - i);
-      const key = getDayKey(d);
+
       dias.push({
-        key,
+        key: getDayKey(d),
         label: formatShortDate(d),
         receita: 0,
         despesa: 0,
@@ -244,8 +261,8 @@ export default function App() {
   }, [dados]);
 
   const maiorValorGrafico = useMemo(() => {
-    const valores = grafico7Dias.flatMap((d) => [d.receita, d.despesa]);
-    return Math.max(...valores, 1);
+    const todos = grafico7Dias.flatMap((dia) => [dia.receita, dia.despesa]);
+    return Math.max(...todos, 1);
   }, [grafico7Dias]);
 
   if (checkingSession) {
@@ -263,7 +280,7 @@ export default function App() {
           <div style={styles.logoBadge}>V360</div>
           <h1 style={styles.authTitle}>Vertex360</h1>
           <p style={styles.authSubtitle}>
-            Planejamento financeiro com visual profissional.
+            Seu aplicativo premium de planejamento financeiro.
           </p>
 
           <input
@@ -283,10 +300,19 @@ export default function App() {
           />
 
           <div style={styles.authButtons}>
-            <button style={styles.primaryButton} onClick={entrar} disabled={loading}>
+            <button
+              style={styles.primaryButton}
+              onClick={entrar}
+              disabled={loading}
+            >
               Entrar
             </button>
-            <button style={styles.secondaryButton} onClick={cadastrar} disabled={loading}>
+
+            <button
+              style={styles.secondaryButton}
+              onClick={cadastrar}
+              disabled={loading}
+            >
               Cadastrar
             </button>
           </div>
@@ -326,7 +352,7 @@ export default function App() {
             <div>
               <h1 style={styles.pageTitle}>Dashboard Financeiro</h1>
               <p style={styles.pageSubtitle}>
-                Controle sua evolução financeira em tempo real.
+                Acompanhe receitas, despesas, saldo e evolução da sua meta.
               </p>
             </div>
 
@@ -375,7 +401,7 @@ export default function App() {
             <div style={styles.panel}>
               <div style={styles.panelHeader}>
                 <h2 style={styles.panelTitle}>Novo Lançamento</h2>
-                <span style={styles.panelHint}>Adicionar receita ou despesa</span>
+                <span style={styles.panelHint}>Adicione receitas e despesas</span>
               </div>
 
               <div style={styles.formRow}>
@@ -409,12 +435,17 @@ export default function App() {
             <div style={styles.panel}>
               <div style={styles.panelHeader}>
                 <h2 style={styles.panelTitle}>Meta Financeira</h2>
-                <span style={styles.panelHint}>Controle de objetivo mensal</span>
+                <span style={styles.panelHint}>Evolução do objetivo mensal</span>
               </div>
 
               <div style={styles.goalValue}>{formatCurrency(metaMensal)}</div>
               <div style={styles.progressWrapLarge}>
-                <div style={{ ...styles.progressBarLarge, width: `${progressoMeta}%` }} />
+                <div
+                  style={{
+                    ...styles.progressBarLarge,
+                    width: `${progressoMeta}%`,
+                  }}
+                />
               </div>
               <div style={styles.goalFooter}>
                 {formatCurrency(receita)} de {formatCurrency(metaMensal)}
@@ -425,14 +456,20 @@ export default function App() {
           <section style={styles.contentGrid}>
             <div style={styles.panelLarge}>
               <div style={styles.panelHeader}>
-                <h2 style={styles.panelTitle}>Gráfico dos Últimos 7 Dias</h2>
-                <span style={styles.panelHint}>Receitas x despesas</span>
+                <h2 style={styles.panelTitle}>Últimos 7 Dias</h2>
+                <span style={styles.panelHint}>Gráfico automático</span>
               </div>
 
               <div style={styles.chartWrap}>
                 {grafico7Dias.map((dia) => {
-                  const receitaHeight = (dia.receita / maiorValorGrafico) * 140;
-                  const despesaHeight = (dia.despesa / maiorValorGrafico) * 140;
+                  const receitaHeight = Math.max(
+                    (dia.receita / maiorValorGrafico) * 140,
+                    dia.receita > 0 ? 8 : 0
+                  );
+                  const despesaHeight = Math.max(
+                    (dia.despesa / maiorValorGrafico) * 140,
+                    dia.despesa > 0 ? 8 : 0
+                  );
 
                   return (
                     <div key={dia.key} style={styles.chartColumn}>
@@ -494,7 +531,7 @@ export default function App() {
                       <div
                         style={{
                           ...styles.historyValue,
-                          color: item.tipo === "receita" ? "#7CFFB2" : "#FF9F9F",
+                          color: item.tipo === "receita" ? "#7CFFB2" : "#FFB2B2",
                         }}
                       >
                         {formatCurrency(item.valor)}
@@ -514,7 +551,8 @@ export default function App() {
 const styles = {
   loadingScreen: {
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #031b4e 0%, #0b4cff 50%, #1fd6ff 100%)",
+    background:
+      "radial-gradient(circle at top left, #31e1ff 0%, #0b6cff 30%, #04225f 70%, #02122f 100%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -574,6 +612,17 @@ const styles = {
     marginBottom: 24,
     opacity: 0.9,
     lineHeight: 1.5,
+  },
+  input: {
+    width: "100%",
+    boxSizing: "border-box",
+    border: "none",
+    borderRadius: 14,
+    padding: "14px 16px",
+    marginBottom: 12,
+    fontSize: 16,
+    color: "#0b3d91",
+    fontWeight: 700,
   },
   authButtons: {
     display: "grid",
@@ -956,6 +1005,9 @@ const styles = {
     display: "grid",
     gap: 12,
     marginTop: 10,
+    maxHeight: 320,
+    overflowY: "auto",
+    paddingRight: 4,
   },
   historyItem: {
     display: "flex",
