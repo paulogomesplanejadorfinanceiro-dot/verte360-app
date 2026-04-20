@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./services/supabase";
-import DashboardSupport from "./components/DashboardSupport";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -66,6 +65,13 @@ export default function App() {
     fetchTransactions(user.id);
   }
 
+  function formatMoney(value) {
+    return Number(value || 0).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+  }
+
   const receita = transactions
     .filter((t) => t.tipo === "receita")
     .reduce((acc, t) => acc + Number(t.valor || 0), 0);
@@ -76,13 +82,6 @@ export default function App() {
 
   const saldo = receita - despesa;
   const progresso = meta > 0 ? Math.min((receita / meta) * 100, 100) : 0;
-
-  function formatMoney(value) {
-    return Number(value || 0).toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    });
-  }
 
   async function handleLogin() {
     const email = prompt("Digite seu email");
@@ -104,7 +103,20 @@ export default function App() {
     setTransactions([]);
   }
 
-  // 🔥 LOGIN (NÃO LOGADO)
+  function openWhatsApp() {
+    window.open(
+      "https://wa.me/5511987835736?text=Olá,%20vim%20pelo%20Vertex360%20e%20quero%20falar%20sobre%20meu%20planejamento.",
+      "_blank"
+    );
+  }
+
+  function openMentoria() {
+    window.open(
+      "https://wa.me/5511987835736?text=Olá,%20quero%20agendar%20uma%20mentoria%20pelo%20Vertex360.",
+      "_blank"
+    );
+  }
+
   if (!user) {
     return (
       <div
@@ -116,88 +128,116 @@ export default function App() {
           color: "white",
         }}
       >
-        <button onClick={handleLogin}>
-          Entrar no Vertex360
-        </button>
+        <button onClick={handleLogin}>Entrar no Vertex360</button>
       </div>
     );
   }
 
-  // 🔥 APP (LOGADO)
   return (
     <div className="app">
-      <DashboardSupport user={user} />
+      <div className="sidebar">
+        <h1>Vertex360</h1>
+        <p>Planejamento Financeiro</p>
 
-      <div className="cards-grid">
-        <div className="card">
-          <h3>Receita</h3>
-          <h2>{formatMoney(receita)}</h2>
+        <div className="menu">
+          <button>Dashboard</button>
+          <button>Lançamentos</button>
+          <button>Metas</button>
+          <button>Configurações</button>
         </div>
 
-        <div className="card">
-          <h3>Despesa</h3>
-          <h2>{formatMoney(despesa)}</h2>
-        </div>
-
-        <div className="card">
-          <h3>Saldo</h3>
-          <h2>{formatMoney(saldo)}</h2>
-        </div>
-      </div>
-
-      <div className="meta-card">
-        <h3>Meta mensal</h3>
-
-        <input
-          type="number"
-          value={meta}
-          onChange={(e) => setMeta(Number(e.target.value))}
-        />
-
-        <div className="progress-bar">
-          <div style={{ width: `${progresso}%` }} />
-        </div>
-
-        <p>
-          {formatMoney(receita)} de {formatMoney(meta)}
-        </p>
-      </div>
-
-      <div className="form">
-        <input
-          type="number"
-          placeholder="Valor"
-          value={valor}
-          onChange={(e) => setValor(e.target.value)}
-        />
-
-        <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
-          <option value="receita">Receita</option>
-          <option value="despesa">Despesa</option>
-        </select>
-
-        <button onClick={addTransaction}>Adicionar</button>
-      </div>
-
-      <div className="historico">
-        <div className="historico-topo">
-          <h3>Histórico</h3>
+        <div className="sidebar-footer">
+          <p>{user.email}</p>
           <button onClick={handleLogout}>Sair</button>
         </div>
+      </div>
 
-        {transactions.length === 0 ? (
-          <div className="item">Nenhum lançamento ainda.</div>
-        ) : (
-          transactions.map((t) => (
-            <div key={t.id} className="item">
-              <span>
-                {t.tipo} -{" "}
-                {new Date(t.created_at).toLocaleDateString("pt-BR")}
-              </span>
-              <strong>{formatMoney(t.valor)}</strong>
+      <div className="main-content">
+        <div className="cards-grid">
+          <div className="card">
+            <h3>Receita</h3>
+            <h2>{formatMoney(receita)}</h2>
+          </div>
+
+          <div className="card">
+            <h3>Despesa</h3>
+            <h2>{formatMoney(despesa)}</h2>
+          </div>
+
+          <div className="card">
+            <h3>Saldo</h3>
+            <h2>{formatMoney(saldo)}</h2>
+          </div>
+        </div>
+
+        <div className="meta-card">
+          <h3>Meta mensal</h3>
+
+          <input
+            type="number"
+            value={meta}
+            onChange={(e) => setMeta(Number(e.target.value))}
+          />
+
+          <div className="progress-bar">
+            <div style={{ width: `${progresso}%` }} />
+          </div>
+
+          <p>
+            {formatMoney(receita)} de {formatMoney(meta)}
+          </p>
+        </div>
+
+        <div className="support-section">
+          <div className="support-card support-card--whatsapp">
+            <div>
+              <h3>WhatsApp</h3>
+              <p>Fale direto comigo para tirar dúvidas e receber suporte.</p>
             </div>
-          ))
-        )}
+            <button onClick={openWhatsApp}>Falar agora</button>
+          </div>
+
+          <div className="support-card support-card--mentoria">
+            <div>
+              <h3>Agendar mentoria</h3>
+              <p>Marque uma conversa para análise e direcionamento financeiro.</p>
+            </div>
+            <button onClick={openMentoria}>Agendar</button>
+          </div>
+        </div>
+
+        <div className="form">
+          <input
+            type="number"
+            placeholder="Valor"
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+          />
+
+          <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
+            <option value="receita">Receita</option>
+            <option value="despesa">Despesa</option>
+          </select>
+
+          <button onClick={addTransaction}>Adicionar</button>
+        </div>
+
+        <div className="historico">
+          <h3>Histórico</h3>
+
+          {transactions.length === 0 ? (
+            <div className="item">Nenhum lançamento ainda.</div>
+          ) : (
+            transactions.map((t) => (
+              <div key={t.id} className="item">
+                <span>
+                  {t.tipo} - {new Date(t.created_at).toLocaleDateString("pt-BR")}
+                </span>
+                <strong>{formatMoney(t.valor)}</strong>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
