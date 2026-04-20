@@ -99,18 +99,21 @@ export default function App() {
     setTransactions([]);
   }
 
-  if (!user) {
-    return (
-      <div className="login-container">
-        <div className="login-card">
-          <h1>Vertex360</h1>
-          <p>Planejamento Financeiro</p>
-          <button onClick={handleLogin}>Entrar</button>
-        </div>
-      </div>
-    );
-  }
-
+if (!user) {
+  return (
+    <div
+      style={{
+        height: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "white",
+      }}
+    >
+      <button onClick={handleLogin}>Entrar no Vertex360</button>
+    </div>
+  );
+}
   return (
     <div className="app">
       <DashboardSupport user={user} />
