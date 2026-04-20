@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   "https://pnurseudpiyyosulmwrf.supabase.co",
-  "sb_publishable_YOUR_KEY"
+  "sb_publishable_YaOLy2InC7wJuVNjqvg8Lw_3pRLwnAY"
 );
 
 const isMobile = window.innerWidth < 900;
