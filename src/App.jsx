@@ -16,29 +16,46 @@ export default function App() {
   async function getUser() {
     const { data } = await supabase.auth.getUser();
     setUser(data.user);
-    if (data.user) fetchTransactions(data.user.id);
+
+    if (data.user) {
+      fetchTransactions(data.user.id);
+    }
   }
 
   async function fetchTransactions(userId) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("movimentacoes")
       .select("*")
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
-    setTransactions(data || []);
+    if (!error) {
+      setTransactions(data || []);
+    }
   }
 
   async function addTransaction() {
-    if (!valor) return;
+    if (!valor || !user) return;
 
-    await supabase.from("movimentacoes").insert([
+    const valorNumero = Number(valor);
+
+    if (Number.isNaN(valorNumero) || valorNumero <= 0) {
+      alert("Digite um valor válido.");
+      return;
+    }
+
+    const { error } = await supabase.from("movimentacoes").insert([
       {
         user_id: user.id,
-        valor: Number(valor),
+        valor: valorNumero,
         tipo,
       },
     ]);
+
+    if (error) {
+      alert("Erro ao adicionar lançamento.");
+      return;
+    }
 
     setValor("");
     fetchTransactions(user.id);
@@ -46,71 +63,97 @@ export default function App() {
 
   const receita = transactions
     .filter((t) => t.tipo === "receita")
-    .reduce((acc, t) => acc + t.valor, 0);
+    .reduce((acc, t) => acc + Number(t.valor || 0), 0);
 
   const despesa = transactions
     .filter((t) => t.tipo === "despesa")
-    .reduce((acc, t) => acc + t.valor, 0);
+    .reduce((acc, t) => acc + Number(t.valor || 0), 0);
 
   const saldo = receita - despesa;
-  const progresso = (receita / meta) * 100;
+  const progresso = meta > 0 ? Math.min((receita / meta) * 100, 100) : 0;
+
+  function formatMoney(value) {
+    return Number(value || 0).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+  }
+
+  async function handleLogin() {
+    const email = prompt("Digite seu email");
+    if (!email) return;
+
+    const { error } = await supabase.auth.signInWithOtp({ email });
+
+    if (error) {
+      alert("Erro ao enviar link.");
+      return;
+    }
+
+    alert("Link enviado para o email.");
+  }
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    setUser(null);
+    setTransactions([]);
+  }
 
   if (!user) {
     return (
       <div className="login-container">
-        <h2>Vertex360</h2>
-        <button
-          onClick={async () => {
-            const email = prompt("Digite seu email");
-            const { error } = await supabase.auth.signInWithOtp({ email });
-            if (!error) alert("Link enviado para o email");
-          }}
-        >
-          Entrar
-        </button>
+        <div className="login-card">
+          <h1>Vertex360</h1>
+          <p>Planejamento Financeiro</p>
+          <button onClick={handleLogin}>Entrar</button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="app">
-
-      {/* DASHBOARD SUPPORT (WHATSAPP + AGENDAMENTO) */}
       <DashboardSupport user={user} />
 
       <div className="cards-grid">
         <div className="card">
           <h3>Receita</h3>
-          <h2>R$ {receita}</h2>
+          <h2>{formatMoney(receita)}</h2>
         </div>
 
         <div className="card">
           <h3>Despesa</h3>
-          <h2>R$ {despesa}</h2>
+          <h2>{formatMoney(despesa)}</h2>
         </div>
 
         <div className="card">
           <h3>Saldo</h3>
-          <h2>R$ {saldo}</h2>
+          <h2>{formatMoney(saldo)}</h2>
         </div>
       </div>
 
       <div className="meta-card">
         <h3>Meta mensal</h3>
+
         <input
+          type="number"
           value={meta}
           onChange={(e) => setMeta(Number(e.target.value))}
+          placeholder="Digite sua meta"
         />
+
         <div className="progress-bar">
           <div style={{ width: `${progresso}%` }} />
         </div>
+
         <p>
-          R$ {receita} de R$ {meta}
+          {formatMoney(receita)} de {formatMoney(meta)}
         </p>
       </div>
 
       <div className="form">
         <input
+          type="number"
           placeholder="Valor"
           value={valor}
           onChange={(e) => setValor(e.target.value)}
@@ -125,12 +168,23 @@ export default function App() {
       </div>
 
       <div className="historico">
-        <h3>Histórico</h3>
-        {transactions.map((t, i) => (
-          <div key={i} className="item">
-            {t.tipo} - R$ {t.valor}
-          </div>
-        ))}
+        <div className="historico-topo">
+          <h3>Histórico</h3>
+          <button onClick={handleLogout}>Sair</button>
+        </div>
+
+        {transactions.length === 0 ? (
+          <div className="item">Nenhum lançamento ainda.</div>
+        ) : (
+          transactions.map((t) => (
+            <div key={t.id} className="item">
+              <span>
+                {t.tipo} - {t.created_at ? new Date(t.created_at).toLocaleDateString("pt-BR") : ""}
+              </span>
+              <strong>{formatMoney(t.valor)}</strong>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
