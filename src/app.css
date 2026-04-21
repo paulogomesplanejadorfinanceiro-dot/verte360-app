@@ -1,54 +1,245 @@
-.dashboard-support {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 20px;
+* {
+  box-sizing: border-box;
 }
 
-.dashboard-support__card {
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
-  border-radius: 20px;
-  padding: 20px;
-  color: white;
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #0f5eff;
+  color: #0f172a;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.screen {
+  min-height: 100vh;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0b43c9, #0f5eff);
+  padding: 24px;
 }
 
-.dashboard-support__card--highlight {
-  background: linear-gradient(135deg, #00c6ff, #0072ff);
+.login-card,
+.card {
+  width: 100%;
+  max-width: 460px;
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 40px 28px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
 }
 
-.dashboard-support__title {
-  font-size: 18px;
-  font-weight: bold;
+.login-card h1,
+.card h1 {
+  margin: 0 0 10px;
+  font-size: 48px;
+  color: #1d4ed8;
 }
 
-.dashboard-support__text {
-  font-size: 13px;
-  opacity: 0.8;
+.login-card p,
+.card p {
+  margin: 0 0 24px;
+  color: #475569;
 }
 
-.btn {
+.primary-btn,
+.secondary-btn,
+.danger-btn {
   border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
-  font-weight: bold;
+  transition: 0.2s ease;
 }
 
-.btn--primary {
-  background: #00e0ff;
-  color: black;
+.primary-btn {
+  width: 100%;
+  padding: 14px 18px;
+  background: #1d4ed8;
+  color: #fff;
+  font-weight: 700;
 }
 
-.btn--ghost {
-  background: rgba(255,255,255,0.2);
-  color: white;
+.primary-btn:hover {
+  opacity: 0.92;
 }
 
-@media (max-width: 768px) {
-  .dashboard-support {
+.secondary-btn {
+  width: 100%;
+  padding: 12px 16px;
+  background: #e2e8f0;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.danger-btn {
+  padding: 8px 12px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 14px;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  background: #eff6ff;
+}
+
+.sidebar {
+  background: #0b43c9;
+  color: #fff;
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sidebar h2 {
+  margin: 0;
+  font-size: 34px;
+}
+
+.sidebar-subtitle {
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.user-box {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.user-box span {
+  font-size: 14px;
+  opacity: 0.9;
+  word-break: break-word;
+}
+
+.content {
+  padding: 28px;
+}
+
+.topbar h1 {
+  margin: 0 0 6px;
+  color: #0f172a;
+}
+
+.topbar p {
+  margin: 0 0 24px;
+  color: #475569;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.info-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+.info-card span {
+  display: block;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.info-card strong {
+  font-size: 28px;
+  color: #1d4ed8;
+}
+
+.panel {
+  background: #fff;
+  border-radius: 20px;
+  padding: 22px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+.panel h2 {
+  margin-top: 0;
+  margin-bottom: 18px;
+  color: #0f172a;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.form-grid input,
+.form-grid select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.list-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.list-item p {
+  margin: 6px 0 0;
+  color: #64748b;
+}
+
+.list-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.empty-text {
+  color: #64748b;
+}
+
+@media (max-width: 980px) {
+  .app-shell {
     grid-template-columns: 1fr;
+  }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .content {
+    padding: 18px;
   }
 }
