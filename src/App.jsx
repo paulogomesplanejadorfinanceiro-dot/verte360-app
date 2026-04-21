@@ -29,40 +29,22 @@ export default function App() {
   useEffect(() => {
     let mounted = true;
 
-    async function initAuth() {
-      try {
-        const url = new URL(window.location.href);
-        const code = url.searchParams.get("code");
+    async function loadSession() {
+      setLoading(true);
 
-        if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) {
-            console.error("Erro ao trocar code por sessão:", error.message);
-          } else {
-            window.history.replaceState({}, document.title, window.location.pathname);
-          }
-        }
+      const { data, error } = await supabase.auth.getSession();
 
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-
-        if (sessionError) {
-          console.error("Erro ao obter sessão:", sessionError.message);
-        }
-
-        if (mounted) {
-          setUser(session?.user ?? null);
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error("Erro na inicialização da autenticação:", err);
-        if (mounted) setLoading(false);
+      if (error) {
+        console.error("Erro ao buscar sessão:", error.message);
       }
+
+      if (!mounted) return;
+
+      setUser(data?.session?.user ?? null);
+      setLoading(false);
     }
 
-    initAuth();
+    loadSession();
 
     const {
       data: { subscription },
@@ -81,7 +63,7 @@ export default function App() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: "https://app.vertex360planejamento.com.br",
+        redirectTo: window.location.origin,
       },
     });
 
@@ -97,32 +79,22 @@ export default function App() {
     if (error) {
       alert("Erro ao sair: " + error.message);
       console.error(error);
-      return;
     }
-
-    setUser(null);
   }
 
   function adicionarLancamento(e) {
     e.preventDefault();
 
-    const numero = Number(String(valor).replace(",", "."));
-
-    if (!descricao.trim()) {
-      alert("Digite a descrição.");
-      return;
-    }
-
-    if (!numero || numero <= 0) {
-      alert("Digite um valor válido.");
+    if (!valor || !descricao || !data) {
+      alert("Preencha valor, descrição e data.");
       return;
     }
 
     const novo = {
-      id: crypto.randomUUID(),
+      id: Date.now(),
       tipo,
-      valor: numero,
-      descricao: descricao.trim(),
+      valor: Number(valor),
+      descricao,
       data,
     };
 
@@ -136,51 +108,37 @@ export default function App() {
     setTransactions((prev) => prev.filter((item) => item.id !== id));
   }
 
+  const receitas = useMemo(() => {
+    return transactions
+      .filter((item) => item.tipo === "receita")
+      .reduce((acc, item) => acc + item.valor, 0);
+  }, [transactions]);
+
+  const despesas = useMemo(() => {
+    return transactions
+      .filter((item) => item.tipo === "despesa")
+      .reduce((acc, item) => acc + item.valor, 0);
+  }, [transactions]);
+
+  const saldo = receitas - despesas;
+
   function enviarAgendamentoWhatsApp(e) {
     e.preventDefault();
 
-    if (!agNome.trim() || !agData || !agHora) {
+    if (!agNome || !agData || !agHora) {
       alert("Preencha nome, data e horário.");
       return;
     }
 
-    const mensagem = [
-      "Olá, quero agendar uma consultoria na Vertex360.",
-      "",
-      `Nome: ${agNome}`,
-      `Data: ${agData}`,
-      `Horário: ${agHora}`,
-      `Email do cliente: ${user?.email || ""}`,
-    ].join("\n");
-
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensagem)}`;
+    const texto = `Olá, me chamo ${agNome}. Gostaria de agendar uma consultoria.\nData: ${agData}\nHorário: ${agHora}`;
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(texto)}`;
     window.open(url, "_blank");
-
-    setAgNome("");
-    setAgData("");
-    setAgHora("");
   }
-
-  const resumo = useMemo(() => {
-    const receitas = transactions
-      .filter((item) => item.tipo === "receita")
-      .reduce((acc, item) => acc + item.valor, 0);
-
-    const despesas = transactions
-      .filter((item) => item.tipo === "despesa")
-      .reduce((acc, item) => acc + item.valor, 0);
-
-    return {
-      receitas,
-      despesas,
-      saldo: receitas - despesas,
-    };
-  }, [transactions]);
 
   if (loading) {
     return (
-      <div className="screen">
-        <div className="card">
+      <div className="login-page">
+        <div className="login-card">
           <h1>Vertex360</h1>
           <p>Carregando...</p>
         </div>
@@ -190,7 +148,7 @@ export default function App() {
 
   if (!user) {
     return (
-      <div className="screen">
+      <div className="login-page">
         <div className="login-card">
           <h1>Vertex360</h1>
           <p>Planejamento Financeiro</p>
@@ -203,49 +161,60 @@ export default function App() {
   }
 
   return (
-    <div className="app-shell">
+    <div className="app-layout">
       <aside className="sidebar">
-        <div>
-          <h2>Vertex360</h2>
-          <p className="sidebar-subtitle">Planejamento Financeiro</p>
-        </div>
-
-        <div className="user-box">
-          <strong>{user.user_metadata?.full_name || "Cliente"}</strong>
-          <span>{user.email}</span>
-        </div>
-
+        <h2>Vertex360</h2>
+        <p>{user.user_metadata?.full_name || user.email}</p>
+        <nav>
+          <a href="#menu">Menu</a>
+          <a href="#planejamento">Planejamento</a>
+          <a href="#metas">Metas</a>
+          <a href="#lancamentos">Lançamentos</a>
+        </nav>
         <button className="secondary-btn" onClick={handleLogout}>
           Sair
         </button>
       </aside>
 
       <main className="content">
-        <header className="topbar">
-          <h1>Menu principal</h1>
-          <p>Receita, despesa, saldo e agendamento.</p>
-        </header>
+        <section id="menu" className="card">
+          <h2>Resumo financeiro</h2>
+          <div className="summary-grid">
+            <div className="summary-box">
+              <span>Receitas</span>
+              <strong>
+                {receitas.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
+              </strong>
+            </div>
 
-        <section className="cards-grid">
-          <div className="info-card">
-            <span>Receitas</span>
-            <strong>R$ {resumo.receitas.toFixed(2)}</strong>
-          </div>
+            <div className="summary-box">
+              <span>Despesas</span>
+              <strong>
+                {despesas.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
+              </strong>
+            </div>
 
-          <div className="info-card">
-            <span>Despesas</span>
-            <strong>R$ {resumo.despesas.toFixed(2)}</strong>
-          </div>
-
-          <div className="info-card">
-            <span>Saldo</span>
-            <strong>R$ {resumo.saldo.toFixed(2)}</strong>
+            <div className="summary-box">
+              <span>Saldo</span>
+              <strong>
+                {saldo.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
+              </strong>
+            </div>
           </div>
         </section>
 
-        <section className="panel">
+        <section id="planejamento" className="card">
           <h2>Agendar consultoria</h2>
-          <form className="form-grid" onSubmit={enviarAgendamentoWhatsApp}>
+          <form onSubmit={enviarAgendamentoWhatsApp} className="form-grid">
             <input
               type="text"
               placeholder="Seu nome"
@@ -268,17 +237,17 @@ export default function App() {
           </form>
         </section>
 
-        <section className="panel">
-          <h2>Lançamentos</h2>
-
-          <form className="form-grid" onSubmit={adicionarLancamento}>
+        <section id="lancamentos" className="card">
+          <h2>Adicionar lançamento</h2>
+          <form onSubmit={adicionarLancamento} className="form-grid">
             <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
               <option value="receita">Receita</option>
               <option value="despesa">Despesa</option>
             </select>
 
             <input
-              type="text"
+              type="number"
+              step="0.01"
               placeholder="Valor"
               value={valor}
               onChange={(e) => setValor(e.target.value)}
@@ -298,38 +267,40 @@ export default function App() {
             />
 
             <button className="primary-btn" type="submit">
-              Adicionar
+              Salvar lançamento
             </button>
           </form>
+        </section>
 
-          <div className="list">
-            {transactions.length === 0 ? (
-              <p className="empty-text">Nenhum lançamento ainda.</p>
-            ) : (
-              transactions.map((item) => (
-                <div className="list-item" key={item.id}>
+        <section id="metas" className="card">
+          <h2>Histórico</h2>
+          {transactions.length === 0 ? (
+            <p>Nenhum lançamento ainda.</p>
+          ) : (
+            <div className="list">
+              {transactions.map((item) => (
+                <div key={item.id} className="list-item">
                   <div>
                     <strong>{item.descricao}</strong>
                     <p>
                       {item.tipo} • {item.data}
                     </p>
                   </div>
-
-                  <div className="list-right">
-                    <strong>
-                      {item.tipo === "despesa" ? "- " : "+ "}R$ {item.valor.toFixed(2)}
-                    </strong>
-                    <button
-                      className="danger-btn"
-                      onClick={() => removerLancamento(item.id)}
-                    >
+                  <div className="item-actions">
+                    <span>
+                      {item.valor.toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })}
+                    </span>
+                    <button onClick={() => removerLancamento(item.id)}>
                       Excluir
                     </button>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
       </main>
     </div>
