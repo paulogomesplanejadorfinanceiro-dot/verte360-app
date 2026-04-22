@@ -1,13 +1,18 @@
 import { useState } from "react";
 
-export default function Lancamentos() {
+export default function Lancamentos({
+  lancamentos = [],
+  receitas = 0,
+  despesas = 0,
+  saldo = 0,
+  onAddLancamento,
+  onRemoveLancamento,
+}) {
   const [tipo, setTipo] = useState("receita");
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
 
-  const [lancamentos, setLancamentos] = useState([]);
-
-  function adicionarLancamento() {
+  function adicionar() {
     if (!descricao || !valor) return;
 
     const novo = {
@@ -17,130 +22,108 @@ export default function Lancamentos() {
       valor: parseFloat(valor),
     };
 
-    setLancamentos([novo, ...lancamentos]);
+    onAddLancamento(novo);
 
     setDescricao("");
     setValor("");
   }
 
-  function remover(id) {
-    setLancamentos(lancamentos.filter((l) => l.id !== id));
-  }
-
-  const receitas = lancamentos
-    .filter((l) => l.tipo === "receita")
-    .reduce((acc, l) => acc + l.valor, 0);
-
-  const despesas = lancamentos
-    .filter((l) => l.tipo === "despesa")
-    .reduce((acc, l) => acc + l.valor, 0);
-
-  const saldo = receitas - despesas;
-
   return (
-    <div style={styles.container}>
+    <div className="page-content">
       <h1>Lançamentos</h1>
 
-      {/* RESUMO */}
-      <div style={styles.resumo}>
-        <Card title="Receitas" valor={receitas} cor="#22c55e" />
-        <Card title="Despesas" valor={despesas} cor="#ef4444" />
-        <Card title="Saldo" valor={saldo} cor="#3b82f6" />
+      <section className="dashboard-cards">
+        <ResumoCard titulo="Receitas" valor={receitas} cor="#22c55e" />
+        <ResumoCard titulo="Despesas" valor={despesas} cor="#ef4444" />
+        <ResumoCard titulo="Saldo" valor={saldo} cor="#3b82f6" />
+      </section>
+
+      <div className="panel">
+        <div className="panel-header">
+          <h3>Novo lançamento</h3>
+        </div>
+
+        <div className="form-row">
+          <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
+            <option value="receita">Receita</option>
+            <option value="despesa">Despesa</option>
+          </select>
+
+          <input
+            placeholder="Descrição"
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+          />
+
+          <input
+            type="number"
+            placeholder="Valor"
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+          />
+
+          <button onClick={adicionar}>Adicionar</button>
+        </div>
       </div>
 
-      {/* FORMULÁRIO */}
-      <div style={styles.form}>
-        <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
-          <option value="receita">Receita</option>
-          <option value="despesa">Despesa</option>
-        </select>
+      <div className="panel">
+        <div className="panel-header">
+          <h3>Histórico</h3>
+        </div>
 
-        <input
-          placeholder="Descrição"
-          value={descricao}
-          onChange={(e) => setDescricao(e.target.value)}
-        />
-
-        <input
-          placeholder="Valor"
-          type="number"
-          value={valor}
-          onChange={(e) => setValor(e.target.value)}
-        />
-
-        <button onClick={adicionarLancamento}>
-          Adicionar
-        </button>
-      </div>
-
-      {/* LISTA */}
-      <div style={styles.lista}>
-        {lancamentos.map((l) => (
-          <div key={l.id} style={styles.item}>
-            <div>
-              <strong>{l.descricao}</strong>
-              <p>{l.tipo}</p>
+        <div className="list-block">
+          {lancamentos.length === 0 ? (
+            <div className="empty-state">
+              Nenhum lançamento ainda.
             </div>
+          ) : (
+            lancamentos.map((item) => (
+              <div className="list-row" key={item.id}>
+                <div>
+                  <strong>{item.descricao}</strong>
+                  <span>{item.tipo}</span>
+                </div>
 
-            <div>
-              <strong style={{ color: l.tipo === "receita" ? "#22c55e" : "#ef4444" }}>
-                R$ {l.valor.toFixed(2)}
-              </strong>
-            </div>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <strong
+                    style={{
+                      color:
+                        item.tipo === "receita" ? "#22c55e" : "#ef4444",
+                    }}
+                  >
+                    {item.tipo === "receita" ? "R$ " : "- R$ "}
+                    {item.valor.toFixed(2)}
+                  </strong>
 
-            <button onClick={() => remover(l.id)}>X</button>
-          </div>
-        ))}
+                  <button
+                    onClick={() => onRemoveLancamento(item.id)}
+                    style={{
+                      background: "#ef4444",
+                      border: "none",
+                      color: "#fff",
+                      padding: "4px 8px",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    X
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-function Card({ title, valor, cor }) {
+function ResumoCard({ titulo, valor, cor }) {
   return (
-    <div style={{ ...styles.card, borderLeft: `4px solid ${cor}` }}>
-      <h3>{title}</h3>
+    <div className="dashboard-card">
+      <span>{titulo}</span>
       <h2>R$ {valor.toFixed(2)}</h2>
+      <p style={{ color: cor }}>Atualizado automaticamente</p>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    padding: "30px",
-  },
-
-  resumo: {
-    display: "flex",
-    gap: "15px",
-    marginBottom: "20px",
-  },
-
-  card: {
-    background: "#0f2345",
-    padding: "20px",
-    borderRadius: "10px",
-    minWidth: "180px",
-  },
-
-  form: {
-    display: "flex",
-    gap: "10px",
-    marginBottom: "20px",
-  },
-
-  lista: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-  },
-
-  item: {
-    display: "flex",
-    justifyContent: "space-between",
-    background: "#0f2345",
-    padding: "15px",
-    borderRadius: "10px",
-    alignItems: "center",
-  },
-};
