@@ -1,10 +1,10 @@
 import { useState } from "react";
 
 export default function Lancamentos({
-  lancamentos = [],
-  receitas = 0,
-  despesas = 0,
-  saldo = 0,
+  lancamentos,
+  receitas,
+  despesas,
+  saldo,
   onAddLancamento,
   onRemoveLancamento,
 }) {
