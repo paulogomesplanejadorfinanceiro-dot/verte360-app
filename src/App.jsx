@@ -79,43 +79,32 @@ export default function App() {
   const saldo = receitas - despesas;
 
   function renderPage() {
-    switch (page) {
-      case "dashboard":
-        return (
-          <Dashboard
-            lancamentos={lancamentos}
-            receitas={receitas}
-            despesas={despesas}
-            saldo={saldo}
-          />
-        );
-
-      case "lancamentos":
-        return (
-          <Lancamentos
-            lancamentos={lancamentos}
-            receitas={receitas}
-            despesas={despesas}
-            saldo={saldo}
-            onAddLancamento={adicionarLancamento}
-            onRemoveLancamento={removerLancamento}
-            loading={loading}
-          />
-        );
-
-      case "investimentos":
-        return <Investimentos />;
-
-      default:
-        return (
-          <Dashboard
-            lancamentos={lancamentos}
-            receitas={receitas}
-            despesas={despesas}
-            saldo={saldo}
-          />
-        );
+    if (page === "lancamentos") {
+      return (
+        <Lancamentos
+          lancamentos={lancamentos}
+          receitas={receitas}
+          despesas={despesas}
+          saldo={saldo}
+          onAddLancamento={adicionarLancamento}
+          onRemoveLancamento={removerLancamento}
+          loading={loading}
+        />
+      );
     }
+
+    if (page === "investimentos") {
+      return <Investimentos />;
+    }
+
+    return (
+      <Dashboard
+        lancamentos={lancamentos}
+        receitas={receitas}
+        despesas={despesas}
+        saldo={saldo}
+      />
+    );
   }
 
   return (
