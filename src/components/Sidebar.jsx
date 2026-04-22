@@ -1,7 +1,7 @@
 export default function Sidebar() {
   const menuItems = [
     { icon: "📊", label: "Dashboard", active: true },
-    { icon: "💰", label: "Lançamentos" },
+    { icon: "💰", label: "Lançamentos", active: true },
     { icon: "🎯", label: "Metas" },
     { icon: "📅", label: "Planejamento" },
     { icon: "📈", label: "Relatórios" },
