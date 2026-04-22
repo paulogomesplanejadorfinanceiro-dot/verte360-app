@@ -2,26 +2,30 @@ import { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Lancamentos from "./pages/Lancamentos";
-import Investimentos from "./pages/Investimentos.jsx";
+import Investimentos from "./pages/Investimentos";
 import { supabase } from "./services/supabase";
-import "./app.css";
+import "./App.css";
 
 export default function App() {
   const [page, setPage] = useState("dashboard");
   const [lancamentos, setLancamentos] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // 🔥 BUSCAR DADOS
   async function buscarLancamentos() {
     setLoading(true);
+
     const { data, error } = await supabase
       .from("movimentacoes")
       .select("*")
       .order("created_at", { ascending: false });
+
     if (error) {
-      console.error("Erro ao buscar movimentações:", error);
+      console.error("Erro ao buscar:", error);
     } else {
       setLancamentos(data || []);
     }
+
     setLoading(false);
   }
 
@@ -29,48 +33,23 @@ export default function App() {
     buscarLancamentos();
   }, []);
 
-  async function adicionarLancamento(novo) {
-    const payload = {
-      descricao: novo.descricao || "Sem descrição",
-      tipo: novo.tipo,
-      valor: Number(novo.valor),
-      user_id: null,
-    };
-    const { error } = await supabase
-      .from("movimentacoes")
-      .insert([payload]);
-    if (error) {
-      console.error("Erro ao salvar movimentação:", error);
-      alert(`Erro ao salvar lançamento: ${error.message}`);
-      return;
-    }
-    await buscarLancamentos();
-  }
-
-  async function removerLancamento(id) {
-    const { error } = await supabase
-      .from("movimentacoes")
-      .delete()
-      .eq("id", id);
-    if (error) {
-      console.error("Erro ao remover movimentação:", error);
-      alert(`Erro ao remover lançamento: ${error.message}`);
-      return;
-    }
-    await buscarLancamentos();
-  }
-
+  // 🔥 CALCULOS
   const receitas = lancamentos
-    .filter((item) => item.tipo === "receita")
-    .reduce((acc, item) => acc + Number(item.valor || 0), 0);
+    .filter((l) => l.tipo === "receita")
+    .reduce((acc, l) => acc + Number(l.valor), 0);
 
   const despesas = lancamentos
-    .filter((item) => item.tipo === "despesa")
-    .reduce((acc, item) => acc + Number(item.valor || 0), 0);
+    .filter((l) => l.tipo === "despesa")
+    .reduce((acc, l) => acc + Number(l.valor), 0);
 
   const saldo = receitas - despesas;
 
+  // 🔥 FUNÇÃO CORRETA DE RENDER
   function renderPage() {
+    if (page === "dashboard") {
+      return <Dashboard receitas={receitas} despesas={despesas} saldo={saldo} />;
+    }
+
     if (page === "lancamentos") {
       return (
         <Lancamentos
@@ -78,51 +57,26 @@ export default function App() {
           receitas={receitas}
           despesas={despesas}
           saldo={saldo}
-          onAddLancamento={adicionarLancamento}
-          onRemoveLancamento={removerLancamento}
-          loading={loading}
+          atualizar={buscarLancamentos}
         />
       );
     }
+
     if (page === "investimentos") {
-      return (
-        <Investimentos
-          investimentos={[]}
-          onAdd={() => alert("Em breve!")}
-          onRemove={(id) => console.log("remover", id)}
-        />
-      );
+      return <Investimentos />;
     }
-    return (
-      <Dashboard
-        lancamentos={lancamentos}
-        receitas={receitas}
-        despesas={despesas}
-        saldo={saldo}
-      />
-    );
+
+    return <Dashboard />;
   }
 
+  // 🔥 RENDER PRINCIPAL (NUNCA QUEBRA ISSO)
   return (
-    <div style={styles.app}>
+    <div style={{ display: "flex" }}>
       <Sidebar setPage={setPage} currentPage={page} />
-      <main style={styles.content}>
+
+      <div style={{ flex: 1 }}>
         {renderPage()}
-      </main>
+      </div>
     </div>
   );
 }
-
-const styles = {
-  app: {
-    display: "flex",
-    minHeight: "100vh",
-    background: "#07152d",
-    color: "#ffffff",
-  },
-  content: {
-    flex: 1,
-    minWidth: 0,
-    width: "100%",
-  },
-};
