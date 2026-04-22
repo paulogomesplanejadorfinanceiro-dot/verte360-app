@@ -1,34 +1,10 @@
-export default function Dashboard() {
-  const cards = [
-    {
-      titulo: "Receitas",
-      valor: "R$ 8.250,00",
-      detalhe: "+12,5% vs mês anterior",
-      cor: "#22c55e",
-      emoji: "↗",
-    },
-    {
-      titulo: "Despesas",
-      valor: "R$ 4.230,00",
-      detalhe: "-8,7% vs mês anterior",
-      cor: "#ef4444",
-      emoji: "↘",
-    },
-    {
-      titulo: "Saldo",
-      valor: "R$ 4.020,00",
-      detalhe: "+18,7% vs mês anterior",
-      cor: "#10b981",
-      emoji: "$",
-    },
-  ];
-
-  const lancamentos = [
-    { nome: "Salário", tipo: "Receita", valor: "R$ 5.000,00", cor: "#22c55e" },
-    { nome: "Mercado", tipo: "Despesa", valor: "- R$ 350,00", cor: "#ef4444" },
-    { nome: "Freelance", tipo: "Receita", valor: "R$ 1.200,00", cor: "#22c55e" },
-    { nome: "Aluguel", tipo: "Despesa", valor: "- R$ 1.200,00", cor: "#ef4444" },
-  ];
+export default function Dashboard({
+  lancamentos = [],
+  receitas = 0,
+  despesas = 0,
+  saldo = 0,
+}) {
+  const ultimosLancamentos = lancamentos.slice(0, 5);
 
   const metas = [
     {
@@ -70,25 +46,36 @@ export default function Dashboard() {
       </div>
 
       <section className="dashboard-cards">
-        {cards.map((card) => (
-          <div className="dashboard-card" key={card.titulo}>
-            <div className="card-top">
-              <div className="card-icon" style={{ backgroundColor: `${card.cor}22`, color: card.cor }}>
-                {card.emoji}
-              </div>
-              <span className="card-title">{card.titulo}</span>
-            </div>
-            <h2>{card.valor}</h2>
-            <p style={{ color: card.cor }}>{card.detalhe}</p>
-          </div>
-        ))}
+        <ResumoCard
+          titulo="Receitas"
+          valor={receitas}
+          detalhe="Total das entradas lançadas"
+          cor="#22c55e"
+          emoji="↗"
+        />
+
+        <ResumoCard
+          titulo="Despesas"
+          valor={despesas}
+          detalhe="Total das saídas lançadas"
+          cor="#ef4444"
+          emoji="↘"
+        />
+
+        <ResumoCard
+          titulo="Saldo"
+          valor={saldo}
+          detalhe={saldo >= 0 ? "Saldo atual positivo" : "Saldo atual negativo"}
+          cor={saldo >= 0 ? "#10b981" : "#ef4444"}
+          emoji="$"
+        />
       </section>
 
       <section className="dashboard-grid">
         <div className="panel panel-large">
           <div className="panel-header">
             <h3>Resumo financeiro</h3>
-            <span className="panel-badge">Este mês</span>
+            <span className="panel-badge">Atualizado</span>
           </div>
 
           <div className="fake-chart">
@@ -119,15 +106,29 @@ export default function Dashboard() {
           </div>
 
           <div className="list-block">
-            {lancamentos.map((item, index) => (
-              <div className="list-row" key={index}>
-                <div>
-                  <strong>{item.nome}</strong>
-                  <span>{item.tipo}</span>
-                </div>
-                <strong style={{ color: item.cor }}>{item.valor}</strong>
+            {ultimosLancamentos.length === 0 ? (
+              <div className="empty-state">
+                Nenhum lançamento adicionado ainda.
               </div>
-            ))}
+            ) : (
+              ultimosLancamentos.map((item) => (
+                <div className="list-row" key={item.id}>
+                  <div>
+                    <strong>{item.descricao}</strong>
+                    <span>{item.tipo}</span>
+                  </div>
+
+                  <strong
+                    style={{
+                      color: item.tipo === "receita" ? "#22c55e" : "#ef4444",
+                    }}
+                  >
+                    {item.tipo === "receita" ? "R$ " : "- R$ "}
+                    {item.valor.toFixed(2)}
+                  </strong>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -143,6 +144,7 @@ export default function Dashboard() {
                   <strong>{meta.nome}</strong>
                   <span>{meta.progresso}%</span>
                 </div>
+
                 <div className="goal-bar">
                   <div
                     className="goal-fill"
@@ -152,12 +154,32 @@ export default function Dashboard() {
                     }}
                   ></div>
                 </div>
+
                 <small>{meta.detalhe}</small>
               </div>
             ))}
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+function ResumoCard({ titulo, valor, detalhe, cor, emoji }) {
+  return (
+    <div className="dashboard-card">
+      <div className="card-top">
+        <div
+          className="card-icon"
+          style={{ backgroundColor: `${cor}22`, color: cor }}
+        >
+          {emoji}
+        </div>
+        <span className="card-title">{titulo}</span>
+      </div>
+
+      <h2>R$ {valor.toFixed(2)}</h2>
+      <p style={{ color: cor }}>{detalhe}</p>
     </div>
   );
 }
