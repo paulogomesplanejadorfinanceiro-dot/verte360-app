@@ -34,12 +34,12 @@ export default function Investimentos() {
         </div>
       </div>
 
-      <div style={styles.placeholderGrid}>
-        <div style={styles.panelLarge}>
+      <div style={styles.grid}>
+        <div style={styles.panel}>
           <h3 style={styles.panelTitle}>Distribuição do patrimônio</h3>
         </div>
 
-        <div style={styles.panelLarge}>
+        <div style={styles.panel}>
           <h3 style={styles.panelTitle}>Evolução do patrimônio</h3>
         </div>
       </div>
@@ -54,17 +54,17 @@ export default function Investimentos() {
 
 const styles = {
   container: {
-    padding: "30px",
-    color: "#fff",
     width: "100%",
+    padding: "30px",
+    color: "#ffffff",
   },
 
   header: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "20px",
     gap: "20px",
+    marginBottom: "20px",
   },
 
   title: {
@@ -74,9 +74,9 @@ const styles = {
   },
 
   subtitle: {
+    marginTop: "6px",
     color: "#9fb2d1",
     fontSize: "14px",
-    marginTop: "6px",
   },
 
   button: {
@@ -117,14 +117,14 @@ const styles = {
     fontWeight: "800",
   },
 
-  placeholderGrid: {
+  grid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: "18px",
     marginBottom: "20px",
   },
 
-  panelLarge: {
+  panel: {
     minHeight: "260px",
     background: "#0b1d38",
     border: "1px solid rgba(255,255,255,0.06)",
