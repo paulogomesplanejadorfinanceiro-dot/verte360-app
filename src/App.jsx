@@ -27,43 +27,59 @@ export default function App() {
   }, [transactions]);
 
   useEffect(() => {
-    let mounted = true;
+    async function initAuth() {
+      try {
+        const url = new URL(window.location.href);
+        const code = url.searchParams.get("code");
 
-    async function loadSession() {
-      setLoading(true);
+        // 1) Se voltou do Google com ?code=..., troca por sessão
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            console.error("Erro ao trocar code por sessão:", error.message);
+          } else {
+            // limpa o ?code=... da barra
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        }
 
-      const { data, error } = await supabase.auth.getSession();
+        // 2) Busca a sessão atual
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
 
-      if (error) {
-        console.error("Erro ao buscar sessão:", error.message);
+        if (sessionError) {
+          console.error("Erro ao obter sessão:", sessionError.message);
+        }
+
+        setUser(session?.user ?? null);
+
+        // 3) Escuta mudanças de autenticação
+        const {
+          data: { subscription },
+        } = supabase.auth.onAuthStateChange((_event, session) => {
+          setUser(session?.user ?? null);
+        });
+
+        return () => {
+          subscription.unsubscribe();
+        };
+      } catch (err) {
+        console.error("Erro geral na autenticação:", err);
+      } finally {
+        setLoading(false);
       }
-
-      if (!mounted) return;
-
-      setUser(data?.session?.user ?? null);
-      setLoading(false);
     }
 
-    loadSession();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    initAuth();
   }, []);
 
   async function handleLogin() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: "https://app.vertex360planejamento.com.br",
       },
     });
 
@@ -75,7 +91,6 @@ export default function App() {
 
   async function handleLogout() {
     const { error } = await supabase.auth.signOut();
-
     if (error) {
       alert("Erro ao sair: " + error.message);
       console.error(error);
@@ -85,22 +100,24 @@ export default function App() {
   function adicionarLancamento(e) {
     e.preventDefault();
 
-    if (!valor || !descricao || !data) {
-      alert("Preencha valor, descrição e data.");
+    const valorNumero = Number(String(valor).replace(",", "."));
+
+    if (!descricao.trim() || !valorNumero || !data) {
+      alert("Preencha descrição, valor e data.");
       return;
     }
 
     const novo = {
       id: Date.now(),
       tipo,
-      valor: Number(valor),
-      descricao,
+      descricao: descricao.trim(),
+      valor: valorNumero,
       data,
     };
 
     setTransactions((prev) => [novo, ...prev]);
-    setValor("");
     setDescricao("");
+    setValor("");
     setData(new Date().toISOString().slice(0, 10));
   }
 
@@ -108,30 +125,32 @@ export default function App() {
     setTransactions((prev) => prev.filter((item) => item.id !== id));
   }
 
-  const receitas = useMemo(() => {
-    return transactions
-      .filter((item) => item.tipo === "receita")
-      .reduce((acc, item) => acc + item.valor, 0);
-  }, [transactions]);
+  const receitas = useMemo(
+    () =>
+      transactions
+        .filter((item) => item.tipo === "receita")
+        .reduce((acc, item) => acc + item.valor, 0),
+    [transactions]
+  );
 
-  const despesas = useMemo(() => {
-    return transactions
-      .filter((item) => item.tipo === "despesa")
-      .reduce((acc, item) => acc + item.valor, 0);
-  }, [transactions]);
+  const despesas = useMemo(
+    () =>
+      transactions
+        .filter((item) => item.tipo === "despesa")
+        .reduce((acc, item) => acc + item.valor, 0),
+    [transactions]
+  );
 
   const saldo = receitas - despesas;
 
-  function enviarAgendamentoWhatsApp(e) {
-    e.preventDefault();
-
-    if (!agNome || !agData || !agHora) {
+  function agendarWhatsapp() {
+    if (!agNome.trim() || !agData || !agHora) {
       alert("Preencha nome, data e horário.");
       return;
     }
 
-    const texto = `Olá, me chamo ${agNome}. Gostaria de agendar uma consultoria.\nData: ${agData}\nHorário: ${agHora}`;
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(texto)}`;
+    const mensagem = `Olá, meu nome é ${agNome}. Gostaria de agendar uma consultoria no dia ${agData} às ${agHora}.`;
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensagem)}`;
     window.open(url, "_blank");
   }
 
@@ -161,60 +180,48 @@ export default function App() {
   }
 
   return (
-    <div className="app-layout">
+    <div className="app-shell">
       <aside className="sidebar">
-        <h2>Vertex360</h2>
-        <p>{user.user_metadata?.full_name || user.email}</p>
-        <nav>
+        <div className="brand">Vertex360</div>
+        <nav className="menu">
           <a href="#menu">Menu</a>
           <a href="#planejamento">Planejamento</a>
-          <a href="#metas">Metas</a>
+          <a href="#meta">Meta</a>
           <a href="#lancamentos">Lançamentos</a>
         </nav>
-        <button className="secondary-btn" onClick={handleLogout}>
-          Sair
-        </button>
+
+        <div className="user-box">
+          <span>{user.email}</span>
+          <button className="secondary-btn" onClick={handleLogout}>
+            Sair
+          </button>
+        </div>
       </aside>
 
       <main className="content">
         <section id="menu" className="card">
           <h2>Resumo financeiro</h2>
+
           <div className="summary-grid">
-            <div className="summary-box">
+            <div className="summary-card receita">
               <span>Receitas</span>
-              <strong>
-                {receitas.toLocaleString("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                })}
-              </strong>
+              <strong>R$ {receitas.toFixed(2)}</strong>
             </div>
-
-            <div className="summary-box">
+            <div className="summary-card despesa">
               <span>Despesas</span>
-              <strong>
-                {despesas.toLocaleString("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                })}
-              </strong>
+              <strong>R$ {despesas.toFixed(2)}</strong>
             </div>
-
-            <div className="summary-box">
+            <div className="summary-card saldo">
               <span>Saldo</span>
-              <strong>
-                {saldo.toLocaleString("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                })}
-              </strong>
+              <strong>R$ {saldo.toFixed(2)}</strong>
             </div>
           </div>
         </section>
 
         <section id="planejamento" className="card">
           <h2>Agendar consultoria</h2>
-          <form onSubmit={enviarAgendamentoWhatsApp} className="form-grid">
+
+          <div className="form-grid">
             <input
               type="text"
               placeholder="Seu nome"
@@ -231,19 +238,36 @@ export default function App() {
               value={agHora}
               onChange={(e) => setAgHora(e.target.value)}
             />
-            <button className="primary-btn" type="submit">
-              Agendar no WhatsApp
-            </button>
-          </form>
+          </div>
+
+          <button className="primary-btn" onClick={agendarWhatsapp}>
+            Agendar pelo WhatsApp
+          </button>
+        </section>
+
+        <section id="meta" className="card">
+          <h2>Evolução</h2>
+          <p>
+            Aqui você acompanha seu saldo atual e sua evolução financeira com base
+            nas receitas e despesas lançadas.
+          </p>
         </section>
 
         <section id="lancamentos" className="card">
-          <h2>Adicionar lançamento</h2>
+          <h2>Novo lançamento</h2>
+
           <form onSubmit={adicionarLancamento} className="form-grid">
             <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
               <option value="receita">Receita</option>
               <option value="despesa">Despesa</option>
             </select>
+
+            <input
+              type="text"
+              placeholder="Descrição"
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+            />
 
             <input
               type="number"
@@ -254,26 +278,20 @@ export default function App() {
             />
 
             <input
-              type="text"
-              placeholder="Descrição"
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-            />
-
-            <input
               type="date"
               value={data}
               onChange={(e) => setData(e.target.value)}
             />
 
-            <button className="primary-btn" type="submit">
-              Salvar lançamento
+            <button type="submit" className="primary-btn">
+              Adicionar
             </button>
           </form>
         </section>
 
-        <section id="metas" className="card">
-          <h2>Histórico</h2>
+        <section className="card">
+          <h2>Lista de lançamentos</h2>
+
           {transactions.length === 0 ? (
             <p>Nenhum lançamento ainda.</p>
           ) : (
@@ -282,18 +300,19 @@ export default function App() {
                 <div key={item.id} className="list-item">
                   <div>
                     <strong>{item.descricao}</strong>
-                    <p>
-                      {item.tipo} • {item.data}
-                    </p>
-                  </div>
-                  <div className="item-actions">
                     <span>
-                      {item.valor.toLocaleString("pt-BR", {
-                        style: "currency",
-                        currency: "BRL",
-                      })}
+                      {item.tipo} • {item.data}
                     </span>
-                    <button onClick={() => removerLancamento(item.id)}>
+                  </div>
+
+                  <div className="list-actions">
+                    <strong>
+                      {item.tipo === "despesa" ? "-" : "+"} R$ {item.valor.toFixed(2)}
+                    </strong>
+                    <button
+                      className="danger-btn"
+                      onClick={() => removerLancamento(item.id)}
+                    >
                       Excluir
                     </button>
                   </div>
