@@ -21,7 +21,6 @@ export default function App() {
 
     if (error) {
       console.error("Erro ao buscar movimentações:", error);
-      alert(`Erro ao buscar movimentações: ${error.message}`);
     } else {
       setLancamentos(data || []);
     }
@@ -35,7 +34,7 @@ export default function App() {
 
   async function adicionarLancamento(novo) {
     const payload = {
-      descricao: novo.descricao,
+      descricao: novo.descricao || "Sem descrição",
       tipo: novo.tipo,
       valor: Number(novo.valor),
       user_id: null,
@@ -81,6 +80,16 @@ export default function App() {
 
   function renderPage() {
     switch (page) {
+      case "dashboard":
+        return (
+          <Dashboard
+            lancamentos={lancamentos}
+            receitas={receitas}
+            despesas={despesas}
+            saldo={saldo}
+          />
+        );
+
       case "lancamentos":
         return (
           <Lancamentos
