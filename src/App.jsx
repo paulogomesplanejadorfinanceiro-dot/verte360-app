@@ -20,6 +20,7 @@ export default function App() {
 
     if (error) {
       console.error("Erro ao buscar movimentações:", error);
+      alert(`Erro ao buscar movimentações: ${error.message}`);
     } else {
       setLancamentos(data || []);
     }
@@ -39,16 +40,18 @@ export default function App() {
       user_id: null,
     };
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("movimentacoes")
-      .insert([payload]);
+      .insert([payload])
+      .select();
 
     if (error) {
       console.error("Erro ao salvar movimentação:", error);
-      alert("Não foi possível salvar o lançamento. Veja se a tabela está salva corretamente no Supabase.");
+      alert(`Erro ao salvar lançamento: ${error.message}`);
       return;
     }
 
+    console.log("Salvo com sucesso:", data);
     await buscarLancamentos();
   }
 
@@ -60,7 +63,7 @@ export default function App() {
 
     if (error) {
       console.error("Erro ao remover movimentação:", error);
-      alert("Não foi possível remover o lançamento.");
+      alert(`Erro ao remover lançamento: ${error.message}`);
       return;
     }
 
@@ -107,10 +110,7 @@ export default function App() {
   return (
     <div style={styles.app}>
       <Sidebar setPage={setPage} currentPage={page} />
-
-      <main style={styles.content}>
-        {renderPage()}
-      </main>
+      <main style={styles.content}>{renderPage()}</main>
     </div>
   );
 }
@@ -122,7 +122,6 @@ const styles = {
     background: "#07152d",
     color: "#ffffff",
   },
-
   content: {
     flex: 1,
     minWidth: 0,
