@@ -5,7 +5,7 @@ export default function Sidebar({ setPage, currentPage }) {
     { icon: "🎯", label: "Metas", page: "metas" },
     { icon: "📈", label: "Planejamento", page: "planejamento" },
     { icon: "🕘", label: "Relatórios", page: "relatorios" },
-    { icon: "📊", label: "Investimentos", page: "Investimentos" },
+    { icon: "📊", label: "Investimentos", page: "investimentos" },
   ];
 
   return (
