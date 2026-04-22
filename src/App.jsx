@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Lancamentos from "./pages/Lancamentos";
-import Investimentos from "./pages/Investimentos.jsx";
-import EmBranco from "./pages/EmBranco";
+import Investimentos from "./pages/Investimentos";
 import { supabase } from "./services/supabase";
 import "./app.css";
 
@@ -15,12 +14,17 @@ export default function App() {
   async function buscarLancamentos() {
     setLoading(true);
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("movimentacoes")
       .select("*")
       .order("created_at", { ascending: false });
 
-    setLancamentos(data || []);
+    if (error) {
+      console.error("Erro ao buscar movimentações:", error);
+    } else {
+      setLancamentos(data || []);
+    }
+
     setLoading(false);
   }
 
@@ -29,78 +33,87 @@ export default function App() {
   }, []);
 
   async function adicionarLancamento(novo) {
-    await supabase.from("movimentacoes").insert([
-      {
-        descricao: novo.descricao,
-        tipo: novo.tipo,
-        valor: Number(novo.valor),
-      },
-    ]);
+    const payload = {
+      descricao: novo.descricao || "Sem descrição",
+      tipo: novo.tipo,
+      valor: Number(novo.valor),
+      user_id: null,
+    };
+
+    const { error } = await supabase.from("movimentacoes").insert([payload]);
+
+    if (error) {
+      console.error("Erro ao salvar movimentação:", error);
+      alert(`Erro ao salvar lançamento: ${error.message}`);
+      return;
+    }
 
     await buscarLancamentos();
   }
 
   async function removerLancamento(id) {
-    await supabase.from("movimentacoes").delete().eq("id", id);
+    const { error } = await supabase
+      .from("movimentacoes")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("Erro ao remover movimentação:", error);
+      alert(`Erro ao remover lançamento: ${error.message}`);
+      return;
+    }
+
     await buscarLancamentos();
   }
 
   const receitas = lancamentos
-    .filter((i) => i.tipo === "receita")
-    .reduce((a, i) => a + Number(i.valor), 0);
+    .filter((item) => item.tipo === "receita")
+    .reduce((acc, item) => acc + Number(item.valor || 0), 0);
 
   const despesas = lancamentos
-    .filter((i) => i.tipo === "despesa")
-    .reduce((a, i) => a + Number(i.valor), 0);
+    .filter((item) => item.tipo === "despesa")
+    .reduce((acc, item) => acc + Number(item.valor || 0), 0);
 
   const saldo = receitas - despesas;
 
   function renderPage() {
-    switch (page) {
-      case "dashboard":
-        return (
-          <Dashboard
-            lancamentos={lancamentos}
-            receitas={receitas}
-            despesas={despesas}
-            saldo={saldo}
-          />
-        );
-
-      case "lancamentos":
-        return (
-          <Lancamentos
-            lancamentos={lancamentos}
-            receitas={receitas}
-            despesas={despesas}
-            saldo={saldo}
-            onAddLancamento={adicionarLancamento}
-            onRemoveLancamento={removerLancamento}
-            loading={loading}
-          />
-        );
-
-      case "investimentos":
-        return <Investimentos />;
-
-      case "metas":
-        return <EmBranco titulo="Metas" />;
-
-      case "planejamento":
-        return <EmBranco titulo="Planejamento" />;
-
-      case "relatorios":
-        return <EmBranco titulo="Relatórios" />;
-
-      case "educacao":
-        return <EmBranco titulo="Educação Financeira" />;
-
-      case "config":
-        return <EmBranco titulo="Configurações" />;
-
-      default:
-        return <Dashboard />;
+    if (page === "dashboard") {
+      return (
+        <Dashboard
+          lancamentos={lancamentos}
+          receitas={receitas}
+          despesas={despesas}
+          saldo={saldo}
+        />
+      );
     }
+
+    if (page === "lancamentos") {
+      return (
+        <Lancamentos
+          lancamentos={lancamentos}
+          receitas={receitas}
+          despesas={despesas}
+          saldo={saldo}
+          onAddLancamento={adicionarLancamento}
+          onRemoveLancamento={removerLancamento}
+          loading={loading}
+        />
+      );
+    }
+
+    if (page === "investimentos") {
+      return <Investimentos />;
+    }
+
+    return (
+      <Dashboard
+        lancamentos={lancamentos}
+        receitas={receitas}
+        despesas={despesas}
+        saldo={saldo}
+      />
+    );
   }
 
   return (
@@ -116,9 +129,11 @@ const styles = {
     display: "flex",
     minHeight: "100vh",
     background: "#07152d",
+    color: "#ffffff",
   },
-
   content: {
     flex: 1,
+    minWidth: 0,
+    width: "100%",
   },
 };
