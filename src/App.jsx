@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Lancamentos from "./pages/Lancamentos";
+import Investimentos from "./pages/Investimentos";
 import { supabase } from "./services/supabase";
 import "./app.css";
 
@@ -40,10 +41,9 @@ export default function App() {
       user_id: null,
     };
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("movimentacoes")
-      .insert([payload])
-      .select();
+      .insert([payload]);
 
     if (error) {
       console.error("Erro ao salvar movimentação:", error);
@@ -51,7 +51,6 @@ export default function App() {
       return;
     }
 
-    console.log("Salvo com sucesso:", data);
     await buscarLancamentos();
   }
 
@@ -94,6 +93,9 @@ export default function App() {
             loading={loading}
           />
         );
+
+      case "investimentos":
+        return <Investimentos />;
 
       default:
         return (
