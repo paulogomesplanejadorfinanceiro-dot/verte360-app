@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Lancamentos from "./pages/Lancamentos";
-import Investimentos from "./pages/Investimentos";
+import Investimentos from "./pages/Investimentos.jsx";
 import { supabase } from "./services/supabase";
 import "./app.css";
 
