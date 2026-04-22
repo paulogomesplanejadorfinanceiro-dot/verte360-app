@@ -3,8 +3,8 @@ export default function Sidebar({ setPage, currentPage }) {
     { icon: "🏠", label: "Dashboard", page: "dashboard" },
     { icon: "📄", label: "Lançamentos", page: "lancamentos" },
     { icon: "🎯", label: "Metas", page: "metas" },
-    { icon: "📈", label: "Planejamento", page: "planejamento" },
-    { icon: "🕘", label: "Relatórios", page: "relatorios" },
+    { icon: "📅", label: "Planejamento", page: "planejamento" },
+    { icon: "📈", label: "Relatórios", page: "relatorios" },
     { icon: "📊", label: "Investimentos", page: "investimentos" },
   ];
 
@@ -39,9 +39,20 @@ export default function Sidebar({ setPage, currentPage }) {
             </div>
           ))}
 
-          <div style={styles.menuItem}>
-            <span style={styles.icon}>🎓</span>
-            <span>Educação Financeira</span>
+          <div style={styles.educacaoRow}>
+            <div
+              onClick={() => setPage("educacao")}
+              style={{
+                ...styles.menuItem,
+                ...(currentPage === "educacao" ? styles.menuItemActive : {}),
+                marginBottom: 0,
+                flex: 1,
+              }}
+            >
+              <span style={styles.icon}>🎓</span>
+              <span>Educação Financeira</span>
+            </div>
+
             <span style={styles.premiumBadge}>PREMIUM</span>
           </div>
         </div>
@@ -60,7 +71,13 @@ export default function Sidebar({ setPage, currentPage }) {
           <button style={styles.planButton}>Ver planos e benefícios</button>
         </div>
 
-        <div style={styles.configButton}>
+        <div
+          onClick={() => setPage("config")}
+          style={{
+            ...styles.configButton,
+            ...(currentPage === "config" ? styles.configButtonActive : {}),
+          }}
+        >
           <span style={styles.icon}>⚙️</span>
           <span>Configurações</span>
         </div>
@@ -81,6 +98,7 @@ const styles = {
     justifyContent: "space-between",
     padding: "22px 18px",
     borderRight: "1px solid rgba(85, 140, 255, 0.18)",
+    boxShadow: "inset -1px 0 0 rgba(255,255,255,0.03)",
   },
 
   logoArea: {
@@ -101,6 +119,7 @@ const styles = {
     fontSize: "30px",
     fontWeight: "800",
     color: "#ffffff",
+    boxShadow: "0 8px 18px rgba(18, 89, 255, 0.35)",
     flexShrink: 0,
   },
 
@@ -145,11 +164,19 @@ const styles = {
     color: "#eef4ff",
     fontSize: "16px",
     fontWeight: "600",
+    transition: "0.2s ease",
   },
 
   menuItemActive: {
-    background: "linear-gradient(90deg, rgba(60,110,255,0.30) 0%, rgba(95,80,255,0.22) 100%)",
+    background:
+      "linear-gradient(90deg, rgba(60,110,255,0.30) 0%, rgba(95,80,255,0.22) 100%)",
     boxShadow: "inset 0 0 0 1px rgba(120, 163, 255, 0.16)",
+  },
+
+  educacaoRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
   },
 
   icon: {
@@ -160,13 +187,14 @@ const styles = {
   },
 
   premiumBadge: {
-    marginLeft: "auto",
     fontSize: "10px",
     fontWeight: "800",
     padding: "4px 8px",
     borderRadius: "8px",
     background: "linear-gradient(90deg, #7c3aed 0%, #a855f7 100%)",
     color: "#ffffff",
+    letterSpacing: "0.5px",
+    whiteSpace: "nowrap",
   },
 
   bottomArea: {
@@ -177,10 +205,12 @@ const styles = {
   },
 
   planCard: {
-    background: "linear-gradient(180deg, rgba(8,24,48,0.98) 0%, rgba(10,20,38,0.98) 100%)",
+    background:
+      "linear-gradient(180deg, rgba(8,24,48,0.98) 0%, rgba(10,20,38,0.98) 100%)",
     border: "1px solid rgba(121, 156, 255, 0.16)",
     borderRadius: "16px",
     padding: "18px",
+    boxShadow: "0 12px 24px rgba(0,0,0,0.24)",
   },
 
   planIcon: {
@@ -238,9 +268,16 @@ const styles = {
     gap: "12px",
     padding: "16px 14px",
     borderRadius: "14px",
-    background: "linear-gradient(90deg, rgba(60,110,255,0.22) 0%, rgba(95,80,255,0.18) 100%)",
+    cursor: "pointer",
+    background:
+      "linear-gradient(90deg, rgba(60,110,255,0.22) 0%, rgba(95,80,255,0.18) 100%)",
     color: "#ffffff",
     fontSize: "16px",
     fontWeight: "700",
+    boxShadow: "inset 0 0 0 1px rgba(120, 163, 255, 0.12)",
+  },
+
+  configButtonActive: {
+    boxShadow: "inset 0 0 0 1px rgba(140, 176, 255, 0.28)",
   },
 };
