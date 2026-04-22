@@ -8,55 +8,72 @@ import "./app.css";
 export default function App() {
   const [page, setPage] = useState("dashboard");
   const [lancamentos, setLancamentos] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // 🔥 BUSCAR DADOS DO SUPABASE
   async function buscarLancamentos() {
+    setLoading(true);
+
     const { data, error } = await supabase
       .from("movimentacoes")
       .select("*")
-      .order("id", { ascending: false });
+      .order("created_at", { ascending: false });
 
-    if (!error) {
-      setLancamentos(data);
+    if (error) {
+      console.error("Erro ao buscar movimentações:", error);
+    } else {
+      setLancamentos(data || []);
     }
+
+    setLoading(false);
   }
 
-  // 🔥 CARREGA AO INICIAR
   useEffect(() => {
     buscarLancamentos();
   }, []);
 
-  // 🔥 ADICIONAR
   async function adicionarLancamento(novo) {
+    const payload = {
+      descricao: novo.descricao,
+      tipo: novo.tipo,
+      valor: Number(novo.valor),
+      user_id: null,
+    };
+
     const { error } = await supabase
       .from("movimentacoes")
-      .insert([novo]);
+      .insert([payload]);
 
-    if (!error) {
-      buscarLancamentos();
+    if (error) {
+      console.error("Erro ao salvar movimentação:", error);
+      alert("Não foi possível salvar o lançamento. Veja se a tabela está salva corretamente no Supabase.");
+      return;
     }
+
+    await buscarLancamentos();
   }
 
-  // 🔥 REMOVER
   async function removerLancamento(id) {
     const { error } = await supabase
       .from("movimentacoes")
       .delete()
       .eq("id", id);
 
-    if (!error) {
-      buscarLancamentos();
+    if (error) {
+      console.error("Erro ao remover movimentação:", error);
+      alert("Não foi possível remover o lançamento.");
+      return;
     }
+
+    await buscarLancamentos();
   }
 
-  // 🔥 CALCULOS AUTOMATICOS
   const receitas = lancamentos
     .filter((item) => item.tipo === "receita")
-    .reduce((acc, item) => acc + item.valor, 0);
+    .reduce((acc, item) => acc + Number(item.valor || 0), 0);
 
   const despesas = lancamentos
     .filter((item) => item.tipo === "despesa")
-    .reduce((acc, item) => acc + item.valor, 0);
+    .reduce((acc, item) => acc + Number(item.valor || 0), 0);
 
   const saldo = receitas - despesas;
 
@@ -71,12 +88,14 @@ export default function App() {
             saldo={saldo}
             onAddLancamento={adicionarLancamento}
             onRemoveLancamento={removerLancamento}
+            loading={loading}
           />
         );
 
       default:
         return (
           <Dashboard
+            lancamentos={lancamentos}
             receitas={receitas}
             despesas={despesas}
             saldo={saldo}
@@ -86,9 +105,27 @@ export default function App() {
   }
 
   return (
-    <div style={{ display: "flex" }}>
+    <div style={styles.app}>
       <Sidebar setPage={setPage} currentPage={page} />
-      {renderPage()}
+
+      <main style={styles.content}>
+        {renderPage()}
+      </main>
     </div>
   );
 }
+
+const styles = {
+  app: {
+    display: "flex",
+    minHeight: "100vh",
+    background: "#07152d",
+    color: "#ffffff",
+  },
+
+  content: {
+    flex: 1,
+    minWidth: 0,
+    width: "100%",
+  },
+};
