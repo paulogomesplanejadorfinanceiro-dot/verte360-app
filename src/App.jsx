@@ -13,18 +13,15 @@ export default function App() {
 
   async function buscarLancamentos() {
     setLoading(true);
-
     const { data, error } = await supabase
       .from("movimentacoes")
       .select("*")
       .order("created_at", { ascending: false });
-
     if (error) {
       console.error("Erro ao buscar movimentações:", error);
     } else {
       setLancamentos(data || []);
     }
-
     setLoading(false);
   }
 
@@ -39,17 +36,14 @@ export default function App() {
       valor: Number(novo.valor),
       user_id: null,
     };
-
     const { error } = await supabase
       .from("movimentacoes")
       .insert([payload]);
-
     if (error) {
       console.error("Erro ao salvar movimentação:", error);
       alert(`Erro ao salvar lançamento: ${error.message}`);
       return;
     }
-
     await buscarLancamentos();
   }
 
@@ -58,13 +52,11 @@ export default function App() {
       .from("movimentacoes")
       .delete()
       .eq("id", id);
-
     if (error) {
       console.error("Erro ao remover movimentação:", error);
       alert(`Erro ao remover lançamento: ${error.message}`);
       return;
     }
-
     await buscarLancamentos();
   }
 
@@ -92,11 +84,15 @@ export default function App() {
         />
       );
     }
-
     if (page === "investimentos") {
-      return <Investimentos />;
+      return (
+        <Investimentos
+          investimentos={[]}
+          onAdd={() => alert("Em breve!")}
+          onRemove={(id) => console.log("remover", id)}
+        />
+      );
     }
-
     return (
       <Dashboard
         lancamentos={lancamentos}
