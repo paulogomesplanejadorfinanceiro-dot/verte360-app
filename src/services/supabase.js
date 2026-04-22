@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = "https://pnurseudpiyyosulmwrf.supabase.co";
 
 // 🔑 SUA CHAVE (já configurada)
-const supabaseAnonKey = "sb_publishable_YaOLy2InC7wJuVNjqvg8Lw_3pRLwnAY;
+const supabaseAnonKey = "sb_publishable_YaOLy2InC7wJuVNjqvg8Lw_3pRLwnAY";
 
 // 🚀 Cliente Supabase (CONFIGURAÇÃO CORRETA PARA GOOGLE LOGIN)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
