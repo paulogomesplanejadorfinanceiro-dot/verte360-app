@@ -6,7 +6,6 @@ export default function Sidebar({ setPage, currentPage }) {
     { icon: "📅", label: "Planejamento", page: "planejamento" },
     { icon: "📈", label: "Relatórios", page: "relatorios" },
     { icon: "📊", label: "Investimentos", page: "investimentos" },
-    { icon: "🎓", label: "Educação Financeira", page: "educacao", premium: true },
   ];
 
   return (
@@ -37,9 +36,17 @@ export default function Sidebar({ setPage, currentPage }) {
             >
               <span style={styles.icon}>{item.icon}</span>
               <span>{item.label}</span>
-              {item.premium && <span style={styles.premiumBadge}>PREMIUM</span>}
             </div>
           ))}
+
+          <div style={styles.educacaoRow}>
+            <div style={{ ...styles.menuItem, flex: 1, marginBottom: 0 }}>
+              <span style={styles.icon}>🎓</span>
+              <span>Educação Financeira</span>
+            </div>
+
+            <span style={styles.premiumBadge}>PREMIUM</span>
+          </div>
         </div>
       </div>
 
@@ -152,6 +159,12 @@ const styles = {
     boxShadow: "inset 0 0 0 1px rgba(120, 163, 255, 0.16)",
   },
 
+  educacaoRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+  },
+
   icon: {
     width: "22px",
     textAlign: "center",
@@ -160,7 +173,6 @@ const styles = {
   },
 
   premiumBadge: {
-    marginLeft: "auto",
     fontSize: "10px",
     fontWeight: "800",
     padding: "4px 8px",
