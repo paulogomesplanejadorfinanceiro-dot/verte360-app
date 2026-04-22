@@ -1,21 +1,55 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Lancamentos from "./pages/Lancamentos";
+import { supabase } from "./services/supabase";
 import "./app.css";
 
 export default function App() {
   const [page, setPage] = useState("dashboard");
   const [lancamentos, setLancamentos] = useState([]);
 
-  function adicionarLancamento(novoLancamento) {
-    setLancamentos((prev) => [novoLancamento, ...prev]);
+  // 🔥 BUSCAR DADOS DO SUPABASE
+  async function buscarLancamentos() {
+    const { data, error } = await supabase
+      .from("movimentacoes")
+      .select("*")
+      .order("id", { ascending: false });
+
+    if (!error) {
+      setLancamentos(data);
+    }
   }
 
-  function removerLancamento(id) {
-    setLancamentos((prev) => prev.filter((item) => item.id !== id));
+  // 🔥 CARREGA AO INICIAR
+  useEffect(() => {
+    buscarLancamentos();
+  }, []);
+
+  // 🔥 ADICIONAR
+  async function adicionarLancamento(novo) {
+    const { error } = await supabase
+      .from("movimentacoes")
+      .insert([novo]);
+
+    if (!error) {
+      buscarLancamentos();
+    }
   }
 
+  // 🔥 REMOVER
+  async function removerLancamento(id) {
+    const { error } = await supabase
+      .from("movimentacoes")
+      .delete()
+      .eq("id", id);
+
+    if (!error) {
+      buscarLancamentos();
+    }
+  }
+
+  // 🔥 CALCULOS AUTOMATICOS
   const receitas = lancamentos
     .filter((item) => item.tipo === "receita")
     .reduce((acc, item) => acc + item.valor, 0);
@@ -43,7 +77,6 @@ export default function App() {
       default:
         return (
           <Dashboard
-            lancamentos={lancamentos}
             receitas={receitas}
             despesas={despesas}
             saldo={saldo}
@@ -53,25 +86,9 @@ export default function App() {
   }
 
   return (
-    <div style={styles.app}>
+    <div style={{ display: "flex" }}>
       <Sidebar setPage={setPage} currentPage={page} />
-
-      <main style={styles.content}>
-        {renderPage()}
-      </main>
+      {renderPage()}
     </div>
   );
 }
-
-const styles = {
-  app: {
-    display: "flex",
-    minHeight: "100vh",
-    background: "#07152d",
-    color: "#ffffff",
-  },
-
-  content: {
-    flex: 1,
-  },
-};
