@@ -19,7 +19,9 @@ export default function App() {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (!error) {
+    if (error) {
+      console.error("Erro ao buscar movimentações:", error);
+    } else {
       setLancamentos(data || []);
     }
 
@@ -30,28 +32,53 @@ export default function App() {
     buscarLancamentos();
   }, []);
 
+  async function adicionarLancamento(novo) {
+    const payload = {
+      descricao: novo.descricao || "Sem descrição",
+      tipo: novo.tipo,
+      valor: Number(novo.valor),
+      user_id: null,
+    };
+
+    const { error } = await supabase
+      .from("movimentacoes")
+      .insert([payload]);
+
+    if (error) {
+      console.error("Erro ao salvar movimentação:", error);
+      alert(`Erro ao salvar lançamento: ${error.message}`);
+      return;
+    }
+
+    await buscarLancamentos();
+  }
+
+  async function removerLancamento(id) {
+    const { error } = await supabase
+      .from("movimentacoes")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("Erro ao remover movimentação:", error);
+      alert(`Erro ao remover lançamento: ${error.message}`);
+      return;
+    }
+
+    await buscarLancamentos();
+  }
+
   const receitas = lancamentos
-    .filter((i) => i.tipo === "receita")
-    .reduce((acc, i) => acc + Number(i.valor || 0), 0);
+    .filter((item) => item.tipo === "receita")
+    .reduce((acc, item) => acc + Number(item.valor || 0), 0);
 
   const despesas = lancamentos
-    .filter((i) => i.tipo === "despesa")
-    .reduce((acc, i) => acc + Number(i.valor || 0), 0);
+    .filter((item) => item.tipo === "despesa")
+    .reduce((acc, item) => acc + Number(item.valor || 0), 0);
 
   const saldo = receitas - despesas;
 
   function renderPage() {
-    if (page === "dashboard") {
-      return (
-        <Dashboard
-          lancamentos={lancamentos}
-          receitas={receitas}
-          despesas={despesas}
-          saldo={saldo}
-        />
-      );
-    }
-
     if (page === "lancamentos") {
       return (
         <Lancamentos
@@ -59,6 +86,9 @@ export default function App() {
           receitas={receitas}
           despesas={despesas}
           saldo={saldo}
+          onAddLancamento={adicionarLancamento}
+          onRemoveLancamento={removerLancamento}
+          loading={loading}
         />
       );
     }
@@ -67,13 +97,36 @@ export default function App() {
       return <Investimentos />;
     }
 
-    return <Dashboard />;
+    return (
+      <Dashboard
+        lancamentos={lancamentos}
+        receitas={receitas}
+        despesas={despesas}
+        saldo={saldo}
+      />
+    );
   }
 
   return (
-    <div style={{ display: "flex" }}>
+    <div style={styles.app}>
       <Sidebar setPage={setPage} currentPage={page} />
-      <div style={{ flex: 1 }}>{renderPage()}</div>
+      <main style={styles.content}>
+        {renderPage()}
+      </main>
     </div>
   );
 }
+
+const styles = {
+  app: {
+    display: "flex",
+    minHeight: "100vh",
+    background: "#07152d",
+    color: "#ffffff",
+  },
+  content: {
+    flex: 1,
+    minWidth: 0,
+    width: "100%",
+  },
+};
