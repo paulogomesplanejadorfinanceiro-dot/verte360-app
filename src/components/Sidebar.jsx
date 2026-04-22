@@ -41,7 +41,6 @@ export default function Sidebar({ setPage, currentPage }) {
 
           <div style={styles.educacaoRow}>
             <div
-              onClick={() => setPage("educacao")}
               style={{
                 ...styles.menuItem,
                 ...(currentPage === "educacao" ? styles.menuItemActive : {}),
@@ -71,13 +70,7 @@ export default function Sidebar({ setPage, currentPage }) {
           <button style={styles.planButton}>Ver planos e benefícios</button>
         </div>
 
-        <div
-          onClick={() => setPage("config")}
-          style={{
-            ...styles.configButton,
-            ...(currentPage === "config" ? styles.configButtonActive : {}),
-          }}
-        >
+        <div style={styles.configButton}>
           <span style={styles.icon}>⚙️</span>
           <span>Configurações</span>
         </div>
@@ -275,9 +268,5 @@ const styles = {
     fontSize: "16px",
     fontWeight: "700",
     boxShadow: "inset 0 0 0 1px rgba(120, 163, 255, 0.12)",
-  },
-
-  configButtonActive: {
-    boxShadow: "inset 0 0 0 1px rgba(140, 176, 255, 0.28)",
   },
 };
