@@ -56,16 +56,14 @@ export default function Sidebar({ setPage, currentPage }) {
       <div style={styles.bottomArea}>
         <div style={styles.planCard}>
           <div style={styles.planIcon}>👑</div>
-
           <div style={styles.planSmall}>Você está no plano</div>
           <div style={styles.planName}>Básico</div>
           <div style={styles.planDesc}>
-            Aproveite todos os benefícios do <span style={styles.planHighlight}>Premium!</span>
+            Aproveite todos os benefícios do{" "}
+            <span style={styles.planHighlight}>Premium!</span>
           </div>
 
-          <button style={styles.planButton}>
-            Ver planos e benefícios
-          </button>
+          <button style={styles.planButton}>Ver planos e benefícios</button>
         </div>
 
         <div
@@ -165,7 +163,8 @@ const styles = {
   },
 
   menuItemActive: {
-    background: "linear-gradient(90deg, rgba(60,110,255,0.30) 0%, rgba(95,80,255,0.22) 100%)",
+    background:
+      "linear-gradient(90deg, rgba(60,110,255,0.30) 0%, rgba(95,80,255,0.22) 100%)",
     boxShadow: "inset 0 0 0 1px rgba(120, 163, 255, 0.16)",
   },
 
@@ -195,7 +194,8 @@ const styles = {
   },
 
   planCard: {
-    background: "linear-gradient(180deg, rgba(8,24,48,0.98) 0%, rgba(10,20,38,0.98) 100%)",
+    background:
+      "linear-gradient(180deg, rgba(8,24,48,0.98) 0%, rgba(10,20,38,0.98) 100%)",
     border: "1px solid rgba(121, 156, 255, 0.16)",
     borderRadius: "16px",
     padding: "18px",
@@ -258,7 +258,8 @@ const styles = {
     padding: "16px 14px",
     borderRadius: "14px",
     cursor: "pointer",
-    background: "linear-gradient(90deg, rgba(60,110,255,0.22) 0%, rgba(95,80,255,0.18) 100%)",
+    background:
+      "linear-gradient(90deg, rgba(60,110,255,0.22) 0%, rgba(95,80,255,0.18) 100%)",
     color: "#ffffff",
     fontSize: "16px",
     fontWeight: "700",
