@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Lancamentos from "./pages/Lancamentos";
-import Investimentos from "./pages/Investimentos";
+import Investimentos from "./pages/Investimentos.jsx";
 import { supabase } from "./services/supabase";
 import "./app.css";
 
@@ -77,43 +77,43 @@ export default function App() {
   const saldo = receitas - despesas;
 
   function renderPage() {
-    if (page === "dashboard") {
-      return (
-        <Dashboard
-          lancamentos={lancamentos}
-          receitas={receitas}
-          despesas={despesas}
-          saldo={saldo}
-        />
-      );
-    }
+    switch (page) {
+      case "dashboard":
+        return (
+          <Dashboard
+            lancamentos={lancamentos}
+            receitas={receitas}
+            despesas={despesas}
+            saldo={saldo}
+          />
+        );
 
-    if (page === "lancamentos") {
-      return (
-        <Lancamentos
-          lancamentos={lancamentos}
-          receitas={receitas}
-          despesas={despesas}
-          saldo={saldo}
-          onAddLancamento={adicionarLancamento}
-          onRemoveLancamento={removerLancamento}
-          loading={loading}
-        />
-      );
-    }
+      case "lancamentos":
+        return (
+          <Lancamentos
+            lancamentos={lancamentos}
+            receitas={receitas}
+            despesas={despesas}
+            saldo={saldo}
+            onAddLancamento={adicionarLancamento}
+            onRemoveLancamento={removerLancamento}
+            loading={loading}
+          />
+        );
 
-    if (page === "investimentos") {
-      return <Investimentos />;
-    }
+      case "investimentos":
+        return <Investimentos />;
 
-    return (
-      <Dashboard
-        lancamentos={lancamentos}
-        receitas={receitas}
-        despesas={despesas}
-        saldo={saldo}
-      />
-    );
+      default:
+        return (
+          <Dashboard
+            lancamentos={lancamentos}
+            receitas={receitas}
+            despesas={despesas}
+            saldo={saldo}
+          />
+        );
+    }
   }
 
   return (
