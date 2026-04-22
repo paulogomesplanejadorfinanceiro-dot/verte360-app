@@ -16,10 +16,9 @@ export default function Lancamentos({
     if (!descricao || !valor) return;
 
     const novo = {
-      id: Date.now(),
       tipo,
       descricao,
-      valor: parseFloat(valor),
+      valor: Number(valor),
     };
 
     onAddLancamento(novo);
@@ -73,26 +72,23 @@ export default function Lancamentos({
 
         <div className="list-block">
           {lancamentos.length === 0 ? (
-            <div className="empty-state">
-              Nenhum lançamento ainda.
-            </div>
+            <div className="empty-state">Nenhum lançamento ainda.</div>
           ) : (
             lancamentos.map((item) => (
               <div className="list-row" key={item.id}>
                 <div>
-                  <strong>{item.descricao}</strong>
+                  <strong>{item.descricao || "Sem descrição"}</strong>
                   <span>{item.tipo}</span>
                 </div>
 
-                <div style={{ display: "flex", gap: "10px" }}>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                   <strong
                     style={{
-                      color:
-                        item.tipo === "receita" ? "#22c55e" : "#ef4444",
+                      color: item.tipo === "receita" ? "#22c55e" : "#ef4444",
                     }}
                   >
                     {item.tipo === "receita" ? "R$ " : "- R$ "}
-                    {item.valor.toFixed(2)}
+                    {Number(item.valor).toFixed(2)}
                   </strong>
 
                   <button
@@ -122,7 +118,7 @@ function ResumoCard({ titulo, valor, cor }) {
   return (
     <div className="dashboard-card">
       <span>{titulo}</span>
-      <h2>R$ {valor.toFixed(2)}</h2>
+      <h2>R$ {Number(valor).toFixed(2)}</h2>
       <p style={{ color: cor }}>Atualizado automaticamente</p>
     </div>
   );
