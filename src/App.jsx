@@ -19,9 +19,7 @@ export default function App() {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Erro ao buscar movimentações:", error);
-    } else {
+    if (!error) {
       setLancamentos(data || []);
     }
 
@@ -32,108 +30,50 @@ export default function App() {
     buscarLancamentos();
   }, []);
 
-  async function adicionarLancamento(novo) {
-    const payload = {
-      descricao: novo.descricao || "Sem descrição",
-      tipo: novo.tipo,
-      valor: Number(novo.valor),
-      user_id: null,
-    };
-
-    const { error } = await supabase.from("movimentacoes").insert([payload]);
-
-    if (error) {
-      console.error("Erro ao salvar movimentação:", error);
-      alert(`Erro ao salvar lançamento: ${error.message}`);
-      return;
-    }
-
-    await buscarLancamentos();
-  }
-
-  async function removerLancamento(id) {
-    const { error } = await supabase
-      .from("movimentacoes")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      console.error("Erro ao remover movimentação:", error);
-      alert(`Erro ao remover lançamento: ${error.message}`);
-      return;
-    }
-
-    await buscarLancamentos();
-  }
-
   const receitas = lancamentos
-    .filter((item) => item.tipo === "receita")
-    .reduce((acc, item) => acc + Number(item.valor || 0), 0);
+    .filter((i) => i.tipo === "receita")
+    .reduce((acc, i) => acc + Number(i.valor || 0), 0);
 
   const despesas = lancamentos
-    .filter((item) => item.tipo === "despesa")
-    .reduce((acc, item) => acc + Number(item.valor || 0), 0);
+    .filter((i) => i.tipo === "despesa")
+    .reduce((acc, i) => acc + Number(i.valor || 0), 0);
 
   const saldo = receitas - despesas;
 
   function renderPage() {
-    switch (page) {
-      case "dashboard":
-        return (
-          <Dashboard
-            lancamentos={lancamentos}
-            receitas={receitas}
-            despesas={despesas}
-            saldo={saldo}
-          />
-        );
-
-      case "lancamentos":
-        return (
-          <Lancamentos
-            lancamentos={lancamentos}
-            receitas={receitas}
-            despesas={despesas}
-            saldo={saldo}
-            onAddLancamento={adicionarLancamento}
-            onRemoveLancamento={removerLancamento}
-            loading={loading}
-          />
-        );
-
-      case "investimentos":
-        return <Investimentos />;
-
-      default:
-        return (
-          <Dashboard
-            lancamentos={lancamentos}
-            receitas={receitas}
-            despesas={despesas}
-            saldo={saldo}
-          />
-        );
+    if (page === "dashboard") {
+      return (
+        <Dashboard
+          lancamentos={lancamentos}
+          receitas={receitas}
+          despesas={despesas}
+          saldo={saldo}
+        />
+      );
     }
+
+    if (page === "lancamentos") {
+      return (
+        <Lancamentos
+          lancamentos={lancamentos}
+          receitas={receitas}
+          despesas={despesas}
+          saldo={saldo}
+        />
+      );
+    }
+
+    if (page === "investimentos") {
+      return <Investimentos />;
+    }
+
+    return <Dashboard />;
   }
 
   return (
-    <div style={styles.app}>
+    <div style={{ display: "flex" }}>
       <Sidebar setPage={setPage} currentPage={page} />
-      <main style={styles.content}>{renderPage()}</main>
+      <div style={{ flex: 1 }}>{renderPage()}</div>
     </div>
   );
 }
-
-const styles = {
-  app: {
-    display: "flex",
-    minHeight: "100vh",
-    background: "#07152d",
-    color: "#ffffff",
-  },
-  content: {
-    flex: 1,
-    minWidth: 0,
-    width: "100%",
-  },
-};
