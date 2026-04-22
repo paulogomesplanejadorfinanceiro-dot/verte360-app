@@ -1,25 +1,28 @@
-import Dashboard from "./pages/Dashboard";
+import { useState } from "react";
 import Sidebar from "./components/Sidebar";
+import Dashboard from "./pages/Dashboard";
+import Lancamentos from "./pages/Lancamentos";
 import "./app.css";
 
 export default function App() {
-  return (
-    <div style={styles.container}>
-      <Sidebar />
+  const [page, setPage] = useState("dashboard");
 
-      <div style={styles.content}>
-        <Dashboard />
+  function renderPage() {
+    switch (page) {
+      case "lancamentos":
+        return <Lancamentos />;
+      default:
+        return <Dashboard />;
+    }
+  }
+
+  return (
+    <div style={{ display: "flex" }}>
+      <Sidebar setPage={setPage} currentPage={page} />
+
+      <div style={{ flex: 1 }}>
+        {renderPage()}
       </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    display: "flex",
-  },
-
-  content: {
-    flex: 1,
-  },
-};
