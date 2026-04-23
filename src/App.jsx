@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Lancamentos from "./pages/Lancamentos";
+import Metas from "./pages/Metas";
 import EmBranco from "./pages/EmBranco";
 import { supabase } from "./services/supabase";
 import "./app.css";
@@ -91,6 +92,10 @@ export default function App() {
           loading={loading}
         />
       );
+    }
+
+    if (page === "metas") {
+      return <Metas />;
     }
 
     if (page === "investimentos") {
