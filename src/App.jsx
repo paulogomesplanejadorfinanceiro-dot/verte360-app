@@ -3,6 +3,7 @@ import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Lancamentos from "./pages/Lancamentos";
 import Metas from "./pages/Metas";
+import Planejamento from "./pages/Planejamento";
 import EmBranco from "./pages/EmBranco";
 import { supabase } from "./services/supabase";
 import "./app.css";
@@ -96,6 +97,10 @@ export default function App() {
 
     if (page === "metas") {
       return <Metas />;
+    }
+
+    if (page === "planejamento") {
+      return <Planejamento />;
     }
 
     if (page === "investimentos") {
