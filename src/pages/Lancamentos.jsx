@@ -12,10 +12,7 @@ export default function Lancamentos({
   const [tipo, setTipo] = useState("receita");
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
-
-  const gastos50 = receitas * 0.5;
-  const investimentos30 = receitas * 0.3;
-  const lazer20 = receitas * 0.2;
+  const [modoDistribuicao, setModoDistribuicao] = useState("receita");
 
   function formatarMoeda(valorNumero) {
     return Number(valorNumero || 0).toLocaleString("pt-BR", {
@@ -43,6 +40,44 @@ export default function Lancamentos({
     setValor("");
   }
 
+  const baseCalculo = modoDistribuicao === "receita" ? receitas : saldo > 0 ? saldo : 0;
+
+  const distribuicao =
+    modoDistribuicao === "receita"
+      ? [
+          {
+            label: "Despesas essenciais (60%)",
+            valor: baseCalculo * 0.6,
+          },
+          {
+            label: "Investimentos (20%)",
+            valor: baseCalculo * 0.2,
+          },
+          {
+            label: "Lazer / qualidade de vida (20%)",
+            valor: baseCalculo * 0.2,
+          },
+        ]
+      : [
+          {
+            label: "Investir e crescer (60%)",
+            valor: baseCalculo * 0.6,
+          },
+          {
+            label: "Viver / aproveitar (30%)",
+            valor: baseCalculo * 0.3,
+          },
+          {
+            label: "Segurança / imprevistos (10%)",
+            valor: baseCalculo * 0.1,
+          },
+        ];
+
+  const textoExplicativo =
+    modoDistribuicao === "receita"
+      ? "Essa é a forma ideal de organizar sua renda mensal."
+      : "Essa é a melhor forma de usar o dinheiro que sobrou.";
+
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>Lançamentos</h1>
@@ -68,22 +103,45 @@ export default function Lancamentos({
       </div>
 
       <div style={styles.distribuicaoCard}>
-        <h2 style={styles.sectionTitle}>Distribuição sugerida (50/30/20)</h2>
+        <div style={styles.distribuicaoHeader}>
+          <div>
+            <h2 style={styles.sectionTitle}>Como usar seu dinheiro</h2>
+            <p style={styles.distribuicaoTexto}>{textoExplicativo}</p>
+          </div>
 
-        <div style={styles.distribuicaoLinha}>
-          <span>Gastos essenciais (50%)</span>
-          <strong>{formatarMoeda(gastos50)}</strong>
+          <div style={styles.toggleWrap}>
+            <button
+              style={{
+                ...styles.toggleButton,
+                ...(modoDistribuicao === "receita" ? styles.toggleAtivo : {}),
+              }}
+              onClick={() => setModoDistribuicao("receita")}
+            >
+              Receita
+            </button>
+
+            <button
+              style={{
+                ...styles.toggleButton,
+                ...(modoDistribuicao === "saldo" ? styles.toggleAtivo : {}),
+              }}
+              onClick={() => setModoDistribuicao("saldo")}
+            >
+              Saldo
+            </button>
+          </div>
         </div>
 
-        <div style={styles.distribuicaoLinha}>
-          <span>Investimentos (30%)</span>
-          <strong>{formatarMoeda(investimentos30)}</strong>
+        <div style={styles.baseInfo}>
+          Base de cálculo: <strong>{formatarMoeda(baseCalculo)}</strong>
         </div>
 
-        <div style={styles.distribuicaoLinha}>
-          <span>Lazer / estilo de vida (20%)</span>
-          <strong>{formatarMoeda(lazer20)}</strong>
-        </div>
+        {distribuicao.map((item) => (
+          <div key={item.label} style={styles.distribuicaoLinha}>
+            <span>{item.label}</span>
+            <strong>{formatarMoeda(item.valor)}</strong>
+          </div>
+        ))}
       </div>
 
       <div style={styles.formCard}>
@@ -237,11 +295,56 @@ const styles = {
     marginBottom: "20px",
   },
 
+  distribuicaoHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: "16px",
+    flexWrap: "wrap",
+    marginBottom: "12px",
+  },
+
+  distribuicaoTexto: {
+    margin: 0,
+    color: "#b7c8e8",
+    fontSize: "15px",
+  },
+
+  toggleWrap: {
+    display: "flex",
+    gap: "8px",
+    background: "#10284d",
+    padding: "6px",
+    borderRadius: "12px",
+  },
+
+  toggleButton: {
+    border: "none",
+    padding: "10px 16px",
+    borderRadius: "10px",
+    background: "transparent",
+    color: "#dbeafe",
+    fontWeight: "700",
+    cursor: "pointer",
+    fontSize: "14px",
+  },
+
+  toggleAtivo: {
+    background: "#2563eb",
+    color: "#ffffff",
+  },
+
+  baseInfo: {
+    marginBottom: "12px",
+    color: "#dbeafe",
+    fontSize: "15px",
+  },
+
   distribuicaoLinha: {
     display: "flex",
     justifyContent: "space-between",
     gap: "12px",
-    padding: "10px 0",
+    padding: "12px 0",
     borderBottom: "1px solid rgba(255,255,255,0.06)",
     fontSize: "16px",
   },
