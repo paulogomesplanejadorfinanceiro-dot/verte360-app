@@ -12,7 +12,9 @@ import "./app.css";
 export default function App() {
   const [page, setPage] = useState("dashboard");
   const [lancamentos, setLancamentos] = useState([]);
+  const [metas, setMetas] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMetas, setLoadingMetas] = useState(false);
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" ? window.innerWidth <= 768 : false
   );
@@ -34,8 +36,26 @@ export default function App() {
     setLoading(false);
   }
 
+  async function buscarMetas() {
+    setLoadingMetas(true);
+
+    const { data, error } = await supabase
+      .from("metas")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Erro ao buscar metas:", error);
+    } else {
+      setMetas(data || []);
+    }
+
+    setLoadingMetas(false);
+  }
+
   useEffect(() => {
     buscarLancamentos();
+    buscarMetas();
 
     function handleResize() {
       setIsMobile(window.innerWidth <= 768);
@@ -56,9 +76,7 @@ export default function App() {
       user_id: null,
     };
 
-    const { error } = await supabase
-      .from("movimentacoes")
-      .insert([payload]);
+    const { error } = await supabase.from("movimentacoes").insert([payload]);
 
     if (error) {
       console.error("Erro ao salvar movimentação:", error);
@@ -82,6 +100,37 @@ export default function App() {
     }
 
     await buscarLancamentos();
+  }
+
+  async function adicionarMeta(novaMeta) {
+    const payload = {
+      titulo: novaMeta.titulo,
+      valor_objetivo: Number(novaMeta.valor_objetivo),
+      valor_atual: Number(novaMeta.valor_atual || 0),
+      user_id: null,
+    };
+
+    const { error } = await supabase.from("metas").insert([payload]);
+
+    if (error) {
+      console.error("Erro ao salvar meta:", error);
+      alert(`Erro ao salvar meta: ${error.message}`);
+      return;
+    }
+
+    await buscarMetas();
+  }
+
+  async function removerMeta(id) {
+    const { error } = await supabase.from("metas").delete().eq("id", id);
+
+    if (error) {
+      console.error("Erro ao remover meta:", error);
+      alert(`Erro ao remover meta: ${error.message}`);
+      return;
+    }
+
+    await buscarMetas();
   }
 
   const receitas = lancamentos
@@ -110,7 +159,14 @@ export default function App() {
     }
 
     if (page === "metas") {
-      return <Metas />;
+      return (
+        <Metas
+          metas={metas}
+          onAddMeta={adicionarMeta}
+          onRemoveMeta={removerMeta}
+          loading={loadingMetas}
+        />
+      );
     }
 
     if (page === "planejamento") {
