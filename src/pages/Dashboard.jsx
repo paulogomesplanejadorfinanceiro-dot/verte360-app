@@ -4,182 +4,322 @@ export default function Dashboard({
   despesas = 0,
   saldo = 0,
 }) {
-  const ultimosLancamentos = lancamentos.slice(0, 5);
+  function moeda(valor) {
+    return Number(valor || 0).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+  }
 
-  const metas = [
-    {
-      nome: "Viagem para Europa",
-      progresso: 75,
-      detalhe: "R$ 7.500,00 de R$ 10.000,00",
-      cor: "#3b82f6",
-    },
-    {
-      nome: "Reserva de Emergência",
-      progresso: 45,
-      detalhe: "R$ 4.500,00 de R$ 10.000,00",
-      cor: "#8b5cf6",
-    },
-    {
-      nome: "Compra de um carro",
-      progresso: 40,
-      detalhe: "R$ 20.000,00 de R$ 50.000,00",
-      cor: "#22c55e",
-    },
-  ];
+  const hoje = new Date();
+  const amanha = new Date();
+  amanha.setDate(hoje.getDate() + 1);
+  amanha.setHours(0, 0, 0, 0);
+
+  function vencendoAmanha(item) {
+    if (item.tipo !== "despesa") return false;
+    if (!item.recorrente) return false;
+
+    if (item.data_vencimento) {
+      const dataVencimento = new Date(item.data_vencimento);
+      dataVencimento.setHours(0, 0, 0, 0);
+
+      return (
+        dataVencimento.getDate() === amanha.getDate() &&
+        dataVencimento.getMonth() === amanha.getMonth() &&
+        dataVencimento.getFullYear() === amanha.getFullYear()
+      );
+    }
+
+    if (item.dia_vencimento) {
+      return Number(item.dia_vencimento) === amanha.getDate();
+    }
+
+    return false;
+  }
+
+  const despesasVencendoAmanha = lancamentos.filter(vencendoAmanha);
 
   return (
-    <div className="page-content">
-      <div className="page-header">
+    <div style={styles.container}>
+      <div style={styles.header}>
         <div>
-          <h1>Dashboard</h1>
-          <p>Bem-vindo(a) de volta ao Vertex360.</p>
+          <h1 style={styles.title}>Dashboard</h1>
+          <p style={styles.subtitle}>Visão geral da sua vida financeira.</p>
         </div>
 
-        <div className="period-box">
-          <span>Período</span>
-          <select>
-            <option>Este mês</option>
-            <option>Últimos 3 meses</option>
-            <option>Últimos 6 meses</option>
-          </select>
+        <div style={styles.periodoBox}>
+          <div style={styles.periodoLabel}>Período</div>
+          <div style={styles.periodoValor}>Resumo atual</div>
         </div>
       </div>
 
-      <section className="dashboard-cards">
-        <ResumoCard
-          titulo="Receitas"
-          valor={receitas}
-          detalhe="Total das entradas lançadas"
-          cor="#22c55e"
-          emoji="↗"
-        />
-
-        <ResumoCard
-          titulo="Despesas"
-          valor={despesas}
-          detalhe="Total das saídas lançadas"
-          cor="#ef4444"
-          emoji="↘"
-        />
-
-        <ResumoCard
-          titulo="Saldo"
-          valor={saldo}
-          detalhe={saldo >= 0 ? "Saldo atual positivo" : "Saldo atual negativo"}
-          cor={saldo >= 0 ? "#10b981" : "#ef4444"}
-          emoji="$"
-        />
-      </section>
-
-      <section className="dashboard-grid">
-        <div className="panel panel-large">
-          <div className="panel-header">
-            <h3>Resumo financeiro</h3>
-            <span className="panel-badge">Atualizado</span>
-          </div>
-
-          <div className="fake-chart">
-            <div className="chart-line blue"></div>
-            <div className="chart-line red"></div>
-            <div className="chart-line green"></div>
+      <div style={styles.cards}>
+        <div style={styles.card}>
+          <div style={styles.cardIconGreen}>↗</div>
+          <div>
+            <div style={styles.cardLabel}>Receitas</div>
+            <div style={styles.cardValue}>{moeda(receitas)}</div>
+            <div style={styles.cardTextGreen}>Total das entradas lançadas</div>
           </div>
         </div>
 
-        <div className="panel">
-          <div className="panel-header">
-            <h3>Distribuição de despesas</h3>
-          </div>
-
-          <div className="expense-legend">
-            <div><span className="dot moradia"></span> Moradia 35%</div>
-            <div><span className="dot alimentacao"></span> Alimentação 25%</div>
-            <div><span className="dot transporte"></span> Transporte 15%</div>
-            <div><span className="dot saude"></span> Saúde 10%</div>
-            <div><span className="dot lazer"></span> Lazer 10%</div>
-            <div><span className="dot outros"></span> Outros 5%</div>
+        <div style={styles.card}>
+          <div style={styles.cardIconRed}>↘</div>
+          <div>
+            <div style={styles.cardLabel}>Despesas</div>
+            <div style={styles.cardValue}>{moeda(despesas)}</div>
+            <div style={styles.cardTextRed}>Total das saídas lançadas</div>
           </div>
         </div>
 
-        <div className="panel">
-          <div className="panel-header">
-            <h3>Últimos lançamentos</h3>
+        <div style={styles.card}>
+          <div style={styles.cardIconBlue}>$</div>
+          <div>
+            <div style={styles.cardLabel}>Saldo</div>
+            <div style={styles.cardValue}>{moeda(saldo)}</div>
+            <div
+              style={
+                saldo >= 0 ? styles.cardTextGreen : styles.cardTextRed
+              }
+            >
+              {saldo >= 0 ? "Saldo atual positivo" : "Saldo atual negativo"}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {despesasVencendoAmanha.length > 0 && (
+        <div style={styles.alertaCard}>
+          <div style={styles.alertaTopo}>
+            <div style={styles.alertaTitulo}>Despesas vencendo amanhã</div>
+            <div style={styles.alertaBadge}>Atenção</div>
           </div>
 
-          <div className="list-block">
-            {ultimosLancamentos.length === 0 ? (
-              <div className="empty-state">
-                Nenhum lançamento adicionado ainda.
-              </div>
-            ) : (
-              ultimosLancamentos.map((item) => (
-                <div className="list-row" key={item.id}>
-                  <div>
-                    <strong>{item.descricao}</strong>
-                    <span>{item.tipo}</span>
+          <div style={styles.alertaLista}>
+            {despesasVencendoAmanha.map((item) => (
+              <div key={item.id} style={styles.alertaItem}>
+                <div>
+                  <div style={styles.alertaDescricao}>
+                    {item.descricao || "Despesa recorrente"}
                   </div>
-
-                  <strong
-                    style={{
-                      color: item.tipo === "receita" ? "#22c55e" : "#ef4444",
-                    }}
-                  >
-                    {item.tipo === "receita" ? "R$ " : "- R$ "}
-                    {item.valor.toFixed(2)}
-                  </strong>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        <div className="panel">
-          <div className="panel-header">
-            <h3>Metas em andamento</h3>
-          </div>
-
-          <div className="goals-block">
-            {metas.map((meta, index) => (
-              <div className="goal-item" key={index}>
-                <div className="goal-top">
-                  <strong>{meta.nome}</strong>
-                  <span>{meta.progresso}%</span>
+                  <div style={styles.alertaSub}>
+                    Vence amanhã
+                    {item.dia_vencimento
+                      ? ` • Dia ${item.dia_vencimento}`
+                      : ""}
+                  </div>
                 </div>
 
-                <div className="goal-bar">
-                  <div
-                    className="goal-fill"
-                    style={{
-                      width: `${meta.progresso}%`,
-                      backgroundColor: meta.cor,
-                    }}
-                  ></div>
-                </div>
-
-                <small>{meta.detalhe}</small>
+                <div style={styles.alertaValor}>{moeda(item.valor)}</div>
               </div>
             ))}
           </div>
         </div>
-      </section>
+      )}
     </div>
   );
 }
 
-function ResumoCard({ titulo, valor, detalhe, cor, emoji }) {
-  return (
-    <div className="dashboard-card">
-      <div className="card-top">
-        <div
-          className="card-icon"
-          style={{ backgroundColor: `${cor}22`, color: cor }}
-        >
-          {emoji}
-        </div>
-        <span className="card-title">{titulo}</span>
-      </div>
+const styles = {
+  container: {
+    minHeight: "100vh",
+    background: "#07152d",
+    color: "#ffffff",
+    padding: "32px",
+    boxSizing: "border-box",
+  },
 
-      <h2>R$ {valor.toFixed(2)}</h2>
-      <p style={{ color: cor }}>{detalhe}</p>
-    </div>
-  );
-}
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: "16px",
+    flexWrap: "wrap",
+    marginBottom: "24px",
+  },
+
+  title: {
+    margin: 0,
+    fontSize: "48px",
+    fontWeight: "800",
+  },
+
+  subtitle: {
+    marginTop: "8px",
+    marginBottom: 0,
+    fontSize: "18px",
+    color: "#bfd2f3",
+  },
+
+  periodoBox: {
+    background: "#0b1d38",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "14px",
+    padding: "14px 18px",
+    minWidth: "180px",
+  },
+
+  periodoLabel: {
+    fontSize: "13px",
+    color: "#a8c1eb",
+    marginBottom: "6px",
+  },
+
+  periodoValor: {
+    fontSize: "18px",
+    fontWeight: "700",
+    color: "#ffffff",
+  },
+
+  cards: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    gap: "18px",
+    marginBottom: "20px",
+  },
+
+  card: {
+    background: "#0b1d38",
+    borderRadius: "18px",
+    padding: "22px",
+    border: "1px solid rgba(255,255,255,0.08)",
+    boxShadow: "0 12px 28px rgba(0,0,0,0.18)",
+    display: "flex",
+    alignItems: "flex-start",
+    gap: "14px",
+  },
+
+  cardIconGreen: {
+    width: "46px",
+    height: "46px",
+    borderRadius: "14px",
+    background: "rgba(34,197,94,0.18)",
+    color: "#22c55e",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "24px",
+    fontWeight: "800",
+    flexShrink: 0,
+  },
+
+  cardIconRed: {
+    width: "46px",
+    height: "46px",
+    borderRadius: "14px",
+    background: "rgba(239,68,68,0.18)",
+    color: "#ef4444",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "24px",
+    fontWeight: "800",
+    flexShrink: 0,
+  },
+
+  cardIconBlue: {
+    width: "46px",
+    height: "46px",
+    borderRadius: "14px",
+    background: "rgba(56,189,248,0.18)",
+    color: "#38bdf8",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "24px",
+    fontWeight: "800",
+    flexShrink: 0,
+  },
+
+  cardLabel: {
+    fontSize: "18px",
+    fontWeight: "700",
+    marginBottom: "8px",
+  },
+
+  cardValue: {
+    fontSize: "42px",
+    fontWeight: "800",
+    lineHeight: 1.1,
+    marginBottom: "8px",
+  },
+
+  cardTextGreen: {
+    color: "#22c55e",
+    fontSize: "15px",
+    fontWeight: "700",
+  },
+
+  cardTextRed: {
+    color: "#ef4444",
+    fontSize: "15px",
+    fontWeight: "700",
+  },
+
+  alertaCard: {
+    background: "#0b1d38",
+    borderRadius: "18px",
+    padding: "22px",
+    border: "1px solid rgba(255,255,255,0.08)",
+    boxShadow: "0 12px 28px rgba(0,0,0,0.18)",
+  },
+
+  alertaTopo: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "12px",
+    flexWrap: "wrap",
+    marginBottom: "16px",
+  },
+
+  alertaTitulo: {
+    fontSize: "24px",
+    fontWeight: "800",
+  },
+
+  alertaBadge: {
+    background: "rgba(245,158,11,0.18)",
+    color: "#f59e0b",
+    padding: "8px 12px",
+    borderRadius: "999px",
+    fontSize: "13px",
+    fontWeight: "700",
+  },
+
+  alertaLista: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+  },
+
+  alertaItem: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "16px",
+    background: "#10284d",
+    borderRadius: "14px",
+    padding: "16px 18px",
+  },
+
+  alertaDescricao: {
+    fontSize: "18px",
+    fontWeight: "800",
+    marginBottom: "4px",
+  },
+
+  alertaSub: {
+    fontSize: "14px",
+    color: "#b7c8e8",
+  },
+
+  alertaValor: {
+    fontSize: "24px",
+    fontWeight: "800",
+    color: "#f59e0b",
+    textAlign: "right",
+    minWidth: "120px",
+  },
+};
