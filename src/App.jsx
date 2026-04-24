@@ -13,6 +13,9 @@ export default function App() {
   const [page, setPage] = useState("dashboard");
   const [lancamentos, setLancamentos] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth <= 768 : false
+  );
 
   async function buscarLancamentos() {
     setLoading(true);
@@ -33,6 +36,16 @@ export default function App() {
 
   useEffect(() => {
     buscarLancamentos();
+
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 768);
+    }
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   async function adicionarLancamento(novo) {
@@ -123,24 +136,30 @@ export default function App() {
   }
 
   return (
-    <div style={styles.app}>
-      <Sidebar setPage={setPage} currentPage={page} />
-      <main style={styles.content}>{renderPage()}</main>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: isMobile ? "column" : "row",
+        minHeight: "100vh",
+        background: "#07152d",
+        color: "#ffffff",
+      }}
+    >
+      <Sidebar
+        setPage={setPage}
+        currentPage={page}
+        isMobile={isMobile}
+      />
+
+      <main
+        style={{
+          flex: 1,
+          minWidth: 0,
+          width: "100%",
+        }}
+      >
+        {renderPage()}
+      </main>
     </div>
   );
 }
-
-const styles = {
-  app: {
-    display: "flex",
-    minHeight: "100vh",
-    background: "#07152d",
-    color: "#ffffff",
-  },
-
-  content: {
-    flex: 1,
-    minWidth: 0,
-    width: "100%",
-  },
-};
