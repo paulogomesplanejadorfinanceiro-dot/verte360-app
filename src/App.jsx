@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Sidebar from "./components/Sidebar";
 
+// Páginas
 import Dashboard from "./pages/Dashboard";
 import Lancamentos from "./pages/Lancamentos";
 import Metas from "./pages/Metas";
@@ -30,7 +31,7 @@ export default function App() {
         return <Relatorios />;
 
       case "investimentos":
-        return <EmBranco />; // 🔥 aqui é sua aba de investimentos
+        return <EmBranco />;
 
       case "educacao":
         return <EducacaoFinanceira />;
@@ -42,8 +43,10 @@ export default function App() {
 
   return (
     <div style={styles.container}>
+      {/* 🔥 Sidebar conectado corretamente */}
       <Sidebar setPage={setPagina} currentPage={pagina} />
 
+      {/* 🔥 Área principal */}
       <main style={styles.main}>
         {renderPagina()}
       </main>
@@ -54,11 +57,11 @@ export default function App() {
 const styles = {
   container: {
     display: "flex",
-    background: "#0f172a",
     minHeight: "100vh",
+    background: "#020617", // 🔥 padrão profissional dark
   },
   main: {
     flex: 1,
-    padding: "20px",
+    padding: "25px",
   },
 };
