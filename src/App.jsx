@@ -73,6 +73,13 @@ export default function App() {
       descricao: novo.descricao || "Sem descrição",
       tipo: novo.tipo,
       valor: Number(novo.valor),
+      data_lancamento:
+        novo.data_lancamento || new Date().toISOString().slice(0, 10),
+      recorrente: Boolean(novo.recorrente),
+      dia_vencimento:
+        novo.recorrente && novo.dia_vencimento
+          ? Number(novo.dia_vencimento)
+          : null,
       user_id: null,
     };
 
