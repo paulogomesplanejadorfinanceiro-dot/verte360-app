@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Sidebar from "./components/Sidebar";
 
-// Páginas
 import Dashboard from "./pages/Dashboard";
 import Lancamentos from "./pages/Lancamentos";
 import Metas from "./pages/Metas";
@@ -42,24 +41,12 @@ export default function App() {
   }
 
   return (
-    <div style={styles.container}>
+    <div style={{ display: "flex" }}>
       <Sidebar setPage={setPagina} currentPage={pagina} />
 
-      <div style={styles.content}>
+      <div style={{ flex: 1, padding: 20 }}>
         {renderPagina()}
       </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    display: "flex",
-    minHeight: "100vh",
-    background: "#0f172a"
-  },
-  content: {
-    flex: 1,
-    padding: 20
-  }
-};
