@@ -1,53 +1,54 @@
 export default function Sidebar({ setPage, currentPage }) {
   const menu = [
-    { label: "Dashboard", page: "dashboard" },
-    { label: "Lançamentos", page: "lancamentos" },
-    { label: "Relatórios", page: "relatorios" },
-    { label: "Metas", page: "metas" },
-    { label: "Investimentos", page: "investimentos" },
-    { label: "Planejamento", page: "planejamento" },
-    { label: "Educação", page: "educacao" },
+    { label: "Dashboard", page: "dashboard", icon: "🏠" },
+    { label: "Lançamentos", page: "lancamentos", icon: "💰" },
+    { label: "Metas", page: "metas", icon: "🎯" },
+    { label: "Planejamento", page: "planejamento", icon: "📅" },
+    { label: "Relatórios", page: "relatorios", icon: "📈" },
+    { label: "Investimentos", page: "investimentos", icon: "📊" },
+    { label: "Educação Financeira", page: "educacao", icon: "📚" } // 👈 AQUI ESTÁ O QUE FALTAVA
   ];
 
   return (
     <div style={styles.sidebar}>
       <h2 style={styles.logo}>Vertex360</h2>
 
-      {menu.map((item) => (
-        <div
-          key={item.page}
-          onClick={() => setPage(item.page)}
-          style={{
-            ...styles.item,
-            background:
-              currentPage === item.page ? "#1e293b" : "transparent",
-          }}
-        >
-          {item.label}
-        </div>
-      ))}
+      <div>
+        {menu.map((item) => (
+          <div
+            key={item.page}
+            onClick={() => setPage(item.page)}
+            style={{
+              ...styles.item,
+              background:
+                currentPage === item.page ? "#1e40af" : "transparent"
+            }}
+          >
+            <span style={{ marginRight: 10 }}>{item.icon}</span>
+            {item.label}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
 const styles = {
   sidebar: {
-    width: "220px",
+    width: 250,
     background: "#020617",
     color: "#fff",
-    padding: "20px",
+    padding: 20,
     display: "flex",
-    flexDirection: "column",
-    gap: "10px",
+    flexDirection: "column"
   },
   logo: {
-    marginBottom: "20px",
-    fontSize: "20px",
+    marginBottom: 30
   },
   item: {
-    padding: "10px",
-    borderRadius: "8px",
+    padding: 12,
+    borderRadius: 8,
     cursor: "pointer",
-    transition: "0.2s",
-  },
+    marginBottom: 10
+  }
 };
