@@ -13,22 +13,20 @@ export default function Sidebar({ setPage, currentPage }) {
     <div style={styles.sidebar}>
       <h2 style={styles.logo}>Vertex360</h2>
 
-      <div>
-        {menu.map((item) => (
-          <div
-            key={item.page}
-            onClick={() => setPage(item.page)}
-            style={{
-              ...styles.item,
-              background:
-                currentPage === item.page ? "#1e40af" : "transparent"
-            }}
-          >
-            <span style={{ marginRight: 10 }}>{item.icon}</span>
-            {item.label}
-          </div>
-        ))}
-      </div>
+      {menu.map((item) => (
+        <div
+          key={item.page}
+          onClick={() => setPage(item.page)}
+          style={{
+            ...styles.item,
+            background:
+              currentPage === item.page ? "#1e40af" : "transparent"
+          }}
+        >
+          <span style={{ marginRight: 10 }}>{item.icon}</span>
+          {item.label}
+        </div>
+      ))}
     </div>
   );
 }
@@ -38,9 +36,7 @@ const styles = {
     width: 250,
     background: "#020617",
     color: "#fff",
-    padding: 20,
-    display: "flex",
-    flexDirection: "column"
+    padding: 20
   },
   logo: {
     marginBottom: 30
