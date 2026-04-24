@@ -5,6 +5,7 @@ import Lancamentos from "./pages/Lancamentos";
 import Metas from "./pages/Metas";
 import Planejamento from "./pages/Planejamento";
 import EmBranco from "./pages/EmBranco";
+import Relatorios from "./pages/Relatorios";
 import { supabase } from "./services/supabase";
 import "./app.css";
 
@@ -107,6 +108,10 @@ export default function App() {
       return <EmBranco />;
     }
 
+    if (page === "relatorios") {
+      return <Relatorios lancamentos={lancamentos} />;
+    }
+
     return (
       <Dashboard
         lancamentos={lancamentos}
@@ -132,6 +137,7 @@ const styles = {
     background: "#07152d",
     color: "#ffffff",
   },
+
   content: {
     flex: 1,
     minWidth: 0,
