@@ -1,12 +1,81 @@
-export default function Sidebar({ setPage, currentPage }) {
+import { useState } from "react";
+
+export default function Sidebar({ setPage, currentPage, isMobile }) {
+  const [menuAberto, setMenuAberto] = useState(false);
+
   const menuItems = [
     { icon: "🏠", label: "Dashboard", page: "dashboard" },
-    { icon: "📄", label: "Lançamentos", page: "lancamentos" },
+    { icon: "💰", label: "Lançamentos", page: "lancamentos" },
     { icon: "🎯", label: "Metas", page: "metas" },
     { icon: "📅", label: "Planejamento", page: "planejamento" },
     { icon: "📈", label: "Relatórios", page: "relatorios" },
     { icon: "📊", label: "Investimentos", page: "investimentos" },
   ];
+
+  function handlePageChange(page) {
+    setPage(page);
+    if (isMobile) {
+      setMenuAberto(false);
+    }
+  }
+
+  if (isMobile) {
+    return (
+      <>
+        <div style={styles.mobileTopbar}>
+          <div style={styles.mobileBrandArea}>
+            <div style={styles.mobileLogoBox}>V</div>
+            <div>
+              <div style={styles.mobileBrand}>Vertex360</div>
+              <div style={styles.mobileSubBrand}>Planejamento Financeiro</div>
+            </div>
+          </div>
+
+          <button
+            style={styles.mobileMenuButton}
+            onClick={() => setMenuAberto(!menuAberto)}
+          >
+            ☰
+          </button>
+        </div>
+
+        {menuAberto && (
+          <div
+            style={styles.mobileOverlay}
+            onClick={() => setMenuAberto(false)}
+          >
+            <div
+              style={styles.mobileDrawer}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={styles.mobileDrawerHeader}>Menu</div>
+
+              <div style={styles.menu}>
+                {menuItems.map((item) => (
+                  <div
+                    key={item.page}
+                    onClick={() => handlePageChange(item.page)}
+                    style={{
+                      ...styles.menuItem,
+                      ...(currentPage === item.page ? styles.menuItemActive : {}),
+                    }}
+                  >
+                    <span style={styles.icon}>{item.icon}</span>
+                    <span>{item.label}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div style={styles.mobileFooterCard}>
+                <div style={styles.mobileFooterTitle}>Plano atual</div>
+                <div style={styles.mobileFooterText}>Básico</div>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
 
   return (
     <aside style={styles.sidebar}>
@@ -28,7 +97,7 @@ export default function Sidebar({ setPage, currentPage }) {
           {menuItems.map((item) => (
             <div
               key={item.page}
-              onClick={() => setPage(item.page)}
+              onClick={() => handlePageChange(item.page)}
               style={{
                 ...styles.menuItem,
                 ...(currentPage === item.page ? styles.menuItemActive : {}),
@@ -38,15 +107,6 @@ export default function Sidebar({ setPage, currentPage }) {
               <span>{item.label}</span>
             </div>
           ))}
-
-          <div style={styles.educacaoRow}>
-            <div style={{ ...styles.menuItem, flex: 1, marginBottom: 0 }}>
-              <span style={styles.icon}>🎓</span>
-              <span>Educação Financeira</span>
-            </div>
-
-            <span style={styles.premiumBadge}>PREMIUM</span>
-          </div>
         </div>
       </div>
 
@@ -62,11 +122,6 @@ export default function Sidebar({ setPage, currentPage }) {
 
           <button style={styles.planButton}>Ver planos e benefícios</button>
         </div>
-
-        <div style={styles.configButton}>
-          <span style={styles.icon}>⚙️</span>
-          <span>Configurações</span>
-        </div>
       </div>
     </aside>
   );
@@ -76,7 +131,7 @@ const styles = {
   sidebar: {
     width: "290px",
     minWidth: "290px",
-    height: "100vh",
+    minHeight: "100vh",
     background: "linear-gradient(180deg, #04142b 0%, #041a36 45%, #03101f 100%)",
     color: "#ffffff",
     display: "flex",
@@ -85,6 +140,7 @@ const styles = {
     padding: "22px 18px",
     borderRight: "1px solid rgba(85, 140, 255, 0.18)",
     boxShadow: "inset -1px 0 0 rgba(255,255,255,0.03)",
+    boxSizing: "border-box",
   },
 
   logoArea: {
@@ -151,6 +207,7 @@ const styles = {
     fontSize: "16px",
     fontWeight: "600",
     transition: "0.2s ease",
+    userSelect: "none",
   },
 
   menuItemActive: {
@@ -159,28 +216,11 @@ const styles = {
     boxShadow: "inset 0 0 0 1px rgba(120, 163, 255, 0.16)",
   },
 
-  educacaoRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-  },
-
   icon: {
     width: "22px",
     textAlign: "center",
     fontSize: "18px",
     flexShrink: 0,
-  },
-
-  premiumBadge: {
-    fontSize: "10px",
-    fontWeight: "800",
-    padding: "4px 8px",
-    borderRadius: "8px",
-    background: "linear-gradient(90deg, #7c3aed 0%, #a855f7 100%)",
-    color: "#ffffff",
-    letterSpacing: "0.5px",
-    whiteSpace: "nowrap",
   },
 
   bottomArea: {
@@ -248,18 +288,103 @@ const styles = {
     cursor: "pointer",
   },
 
-  configButton: {
+  mobileTopbar: {
+    position: "sticky",
+    top: 0,
+    zIndex: 50,
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "14px 16px",
+    background: "#08162f",
+    borderBottom: "1px solid rgba(255,255,255,0.08)",
+  },
+
+  mobileBrandArea: {
     display: "flex",
     alignItems: "center",
-    gap: "12px",
-    padding: "16px 14px",
-    borderRadius: "14px",
-    cursor: "pointer",
-    background:
-      "linear-gradient(90deg, rgba(60,110,255,0.22) 0%, rgba(95,80,255,0.18) 100%)",
+    gap: "10px",
+  },
+
+  mobileLogoBox: {
+    width: "42px",
+    height: "42px",
+    borderRadius: "12px",
+    background: "linear-gradient(135deg, #235dff 0%, #53c7ff 100%)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "22px",
+    fontWeight: "800",
     color: "#ffffff",
-    fontSize: "16px",
-    fontWeight: "700",
-    boxShadow: "inset 0 0 0 1px rgba(120, 163, 255, 0.12)",
+    flexShrink: 0,
+  },
+
+  mobileBrand: {
+    fontSize: "18px",
+    fontWeight: "800",
+    color: "#ffffff",
+    lineHeight: 1.1,
+  },
+
+  mobileSubBrand: {
+    fontSize: "11px",
+    color: "#d6e4ff",
+    marginTop: "2px",
+  },
+
+  mobileMenuButton: {
+    border: "none",
+    background: "#2563eb",
+    color: "#ffffff",
+    width: "42px",
+    height: "42px",
+    borderRadius: "10px",
+    fontSize: "20px",
+    cursor: "pointer",
+  },
+
+  mobileOverlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.45)",
+    zIndex: 60,
+  },
+
+  mobileDrawer: {
+    width: "280px",
+    maxWidth: "82%",
+    height: "100%",
+    background: "#0b1d38",
+    padding: "18px 14px",
+    boxSizing: "border-box",
+    boxShadow: "10px 0 30px rgba(0,0,0,0.35)",
+  },
+
+  mobileDrawerHeader: {
+    fontSize: "22px",
+    fontWeight: "800",
+    color: "#ffffff",
+    marginBottom: "18px",
+  },
+
+  mobileFooterCard: {
+    marginTop: "22px",
+    background: "#10284d",
+    borderRadius: "14px",
+    padding: "14px",
+    color: "#dce8ff",
+  },
+
+  mobileFooterTitle: {
+    fontSize: "13px",
+    color: "#b7c8e8",
+    marginBottom: "4px",
+  },
+
+  mobileFooterText: {
+    fontSize: "18px",
+    fontWeight: "800",
+    color: "#ffffff",
   },
 };
