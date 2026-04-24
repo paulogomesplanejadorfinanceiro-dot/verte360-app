@@ -8,7 +8,7 @@ import Metas from "./pages/Metas";
 import Planejamento from "./pages/Planejamento";
 import Relatorios from "./pages/Relatorios";
 import EducacaoFinanceira from "./pages/EducacaoFinanceira";
-import EmBranco from "./pages/EmBranco"; // 🔥 INVESTIMENTOS
+import EmBranco from "./pages/EmBranco";
 
 export default function App() {
   const [pagina, setPagina] = useState("dashboard");
@@ -30,11 +30,11 @@ export default function App() {
       case "relatorios":
         return <Relatorios />;
 
-      case "investimentos":
-        return <EmBranco />;
-
       case "educacao":
         return <EducacaoFinanceira />;
+
+      case "investimentos":
+        return <EmBranco />;
 
       default:
         return <Dashboard />;
@@ -43,13 +43,11 @@ export default function App() {
 
   return (
     <div style={styles.container}>
-      {/* 🔥 Sidebar conectado corretamente */}
       <Sidebar setPage={setPagina} currentPage={pagina} />
 
-      {/* 🔥 Área principal */}
-      <main style={styles.main}>
+      <div style={styles.content}>
         {renderPagina()}
-      </main>
+      </div>
     </div>
   );
 }
@@ -58,10 +56,10 @@ const styles = {
   container: {
     display: "flex",
     minHeight: "100vh",
-    background: "#020617", // 🔥 padrão profissional dark
+    background: "#0f172a"
   },
-  main: {
+  content: {
     flex: 1,
-    padding: "25px",
-  },
+    padding: 20
+  }
 };
