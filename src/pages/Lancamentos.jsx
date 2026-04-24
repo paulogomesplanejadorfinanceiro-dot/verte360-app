@@ -9,9 +9,17 @@ export default function Lancamentos({
   onRemoveLancamento,
   loading = false,
 }) {
+  const isMobile =
+    typeof window !== "undefined" ? window.innerWidth <= 768 : false;
+
   const [tipo, setTipo] = useState("receita");
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
+  const [dataLancamento, setDataLancamento] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
+  const [recorrente, setRecorrente] = useState(false);
+  const [diaVencimento, setDiaVencimento] = useState("");
   const [modoDistribuicao, setModoDistribuicao] = useState("receita");
 
   function formatarMoeda(valorNumero) {
@@ -21,9 +29,30 @@ export default function Lancamentos({
     });
   }
 
+  function formatarData(data) {
+    if (!data) return "Sem data";
+    const d = new Date(`${data}T00:00:00`);
+    return d.toLocaleDateString("pt-BR");
+  }
+
   async function handleAdicionar() {
+    if (!descricao.trim()) {
+      alert("Digite a descrição do lançamento.");
+      return;
+    }
+
     if (!valor) {
       alert("Digite o valor do lançamento.");
+      return;
+    }
+
+    if (!dataLancamento) {
+      alert("Selecione a data do lançamento.");
+      return;
+    }
+
+    if (recorrente && !diaVencimento) {
+      alert("Informe o dia do vencimento/recebimento.");
       return;
     }
 
@@ -33,14 +62,21 @@ export default function Lancamentos({
       tipo,
       descricao,
       valor,
+      data_lancamento: dataLancamento,
+      recorrente,
+      dia_vencimento: recorrente ? diaVencimento : null,
     });
 
     setTipo("receita");
     setDescricao("");
     setValor("");
+    setDataLancamento(new Date().toISOString().slice(0, 10));
+    setRecorrente(false);
+    setDiaVencimento("");
   }
 
-  const baseCalculo = modoDistribuicao === "receita" ? receitas : saldo > 0 ? saldo : 0;
+  const baseCalculo =
+    modoDistribuicao === "receita" ? receitas : saldo > 0 ? saldo : 0;
 
   const distribuicao =
     modoDistribuicao === "receita"
@@ -79,31 +115,31 @@ export default function Lancamentos({
       : "Essa é a melhor forma de usar o dinheiro que sobrou.";
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>Lançamentos</h1>
+    <div style={styles.container(isMobile)}>
+      <h1 style={styles.title(isMobile)}>Lançamentos</h1>
 
-      <div style={styles.cards}>
+      <div style={styles.cards(isMobile)}>
         <div style={styles.card}>
           <div style={styles.cardLabel}>Receitas</div>
-          <div style={styles.cardValue}>{formatarMoeda(receitas)}</div>
+          <div style={styles.cardValue(isMobile)}>{formatarMoeda(receitas)}</div>
           <div style={styles.cardInfoGreen}>Atualizado automaticamente</div>
         </div>
 
         <div style={styles.card}>
           <div style={styles.cardLabel}>Despesas</div>
-          <div style={styles.cardValue}>{formatarMoeda(despesas)}</div>
+          <div style={styles.cardValue(isMobile)}>{formatarMoeda(despesas)}</div>
           <div style={styles.cardInfoRed}>Atualizado automaticamente</div>
         </div>
 
         <div style={styles.card}>
           <div style={styles.cardLabel}>Saldo</div>
-          <div style={styles.cardValue}>{formatarMoeda(saldo)}</div>
+          <div style={styles.cardValue(isMobile)}>{formatarMoeda(saldo)}</div>
           <div style={styles.cardInfoBlue}>Atualizado automaticamente</div>
         </div>
       </div>
 
       <div style={styles.distribuicaoCard}>
-        <div style={styles.distribuicaoHeader}>
+        <div style={styles.distribuicaoHeader(isMobile)}>
           <div>
             <h2 style={styles.sectionTitle}>Como usar seu dinheiro</h2>
             <p style={styles.distribuicaoTexto}>{textoExplicativo}</p>
@@ -147,34 +183,92 @@ export default function Lancamentos({
       <div style={styles.formCard}>
         <h2 style={styles.sectionTitle}>Novo lançamento</h2>
 
-        <div style={styles.formRow}>
-          <select
-            style={styles.input}
-            value={tipo}
-            onChange={(e) => setTipo(e.target.value)}
-          >
-            <option value="receita">Receita</option>
-            <option value="despesa">Despesa</option>
-          </select>
+        <div style={styles.formGrid(isMobile)}>
+          <div>
+            <label style={styles.label}>Tipo</label>
+            <select
+              style={styles.input}
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value)}
+            >
+              <option value="receita">Receita</option>
+              <option value="despesa">Despesa</option>
+            </select>
+          </div>
 
-          <input
-            style={styles.input}
-            type="text"
-            placeholder="Descrição"
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
-          />
+          <div>
+            <label style={styles.label}>
+              Descrição {tipo === "receita" ? "da receita" : "da despesa"}
+            </label>
+            <input
+              style={styles.input}
+              type="text"
+              placeholder={
+                tipo === "receita"
+                  ? "Ex: iFood almoço"
+                  : "Ex: gasolina da moto"
+              }
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+            />
+          </div>
 
-          <input
-            style={styles.input}
-            type="number"
-            placeholder="Valor"
-            value={valor}
-            onChange={(e) => setValor(e.target.value)}
-          />
+          <div>
+            <label style={styles.label}>Valor</label>
+            <input
+              style={styles.input}
+              type="number"
+              placeholder="0,00"
+              value={valor}
+              onChange={(e) => setValor(e.target.value)}
+            />
+          </div>
 
+          <div>
+            <label style={styles.label}>Data</label>
+            <input
+              style={styles.input}
+              type="date"
+              value={dataLancamento}
+              onChange={(e) => setDataLancamento(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label style={styles.label}>É recorrente?</label>
+            <select
+              style={styles.input}
+              value={recorrente ? "sim" : "nao"}
+              onChange={(e) => setRecorrente(e.target.value === "sim")}
+            >
+              <option value="nao">Não</option>
+              <option value="sim">Sim</option>
+            </select>
+          </div>
+
+          {recorrente && (
+            <div>
+              <label style={styles.label}>
+                {tipo === "despesa"
+                  ? "Dia do vencimento"
+                  : "Dia do recebimento"}
+              </label>
+              <input
+                style={styles.input}
+                type="number"
+                min="1"
+                max="31"
+                placeholder="Ex: 10"
+                value={diaVencimento}
+                onChange={(e) => setDiaVencimento(e.target.value)}
+              />
+            </div>
+          )}
+        </div>
+
+        <div style={styles.buttonArea}>
           <button style={styles.addButton} onClick={handleAdicionar}>
-            Adicionar
+            Adicionar lançamento
           </button>
         </div>
       </div>
@@ -189,28 +283,49 @@ export default function Lancamentos({
         ) : (
           <div style={styles.lista}>
             {lancamentos.map((item) => (
-              <div key={item.id} style={styles.item}>
-                <div>
+              <div key={item.id} style={styles.item(isMobile)}>
+                <div style={styles.itemEsquerda}>
                   <div style={styles.itemDescricao}>
                     {item.descricao || "Sem descrição"}
                   </div>
-                  <div style={styles.itemTipo}>{item.tipo}</div>
+
+                  <div style={styles.itemInfo}>
+                    <span>{item.tipo}</span>
+                    <span>•</span>
+                    <span>
+                      {formatarData(item.data_lancamento || item.created_at)}
+                    </span>
+
+                    {item.recorrente && (
+                      <>
+                        <span>•</span>
+                        <span>
+                          Recorrente
+                          {item.dia_vencimento
+                            ? ` • dia ${item.dia_vencimento}`
+                            : ""}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
 
-                <div style={styles.itemDireita}>
+                <div style={styles.itemDireita(isMobile)}>
                   <div
                     style={{
-                      ...styles.itemValor,
+                      ...styles.itemValor(isMobile),
                       color: item.tipo === "receita" ? "#22c55e" : "#ef4444",
                     }}
                   >
-                    {item.tipo === "despesa" ? "- " : ""}
+                    {item.tipo === "despesa" ? "- " : "+ "}
                     {formatarMoeda(item.valor)}
                   </div>
 
                   <button
                     style={styles.deleteButton}
-                    onClick={() => onRemoveLancamento && onRemoveLancamento(item.id)}
+                    onClick={() =>
+                      onRemoveLancamento && onRemoveLancamento(item.id)
+                    }
                   >
                     x
                   </button>
@@ -225,27 +340,27 @@ export default function Lancamentos({
 }
 
 const styles = {
-  container: {
+  container: (isMobile) => ({
     minHeight: "100vh",
     background: "#07152d",
     color: "#ffffff",
-    padding: "32px",
+    padding: isMobile ? "16px" : "32px",
     boxSizing: "border-box",
-  },
+  }),
 
-  title: {
+  title: (isMobile) => ({
     margin: 0,
     marginBottom: "24px",
-    fontSize: "48px",
+    fontSize: isMobile ? "34px" : "48px",
     fontWeight: "800",
-  },
+  }),
 
-  cards: {
+  cards: (isMobile) => ({
     display: "grid",
-    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))",
     gap: "18px",
     marginBottom: "20px",
-  },
+  }),
 
   card: {
     background: "#0b1d38",
@@ -261,12 +376,12 @@ const styles = {
     marginBottom: "8px",
   },
 
-  cardValue: {
-    fontSize: "42px",
+  cardValue: (isMobile) => ({
+    fontSize: isMobile ? "34px" : "42px",
     fontWeight: "800",
     lineHeight: 1.1,
     marginBottom: "8px",
-  },
+  }),
 
   cardInfoGreen: {
     color: "#22c55e",
@@ -295,14 +410,15 @@ const styles = {
     marginBottom: "20px",
   },
 
-  distribuicaoHeader: {
+  distribuicaoHeader: (isMobile) => ({
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "flex-start",
+    alignItems: isMobile ? "stretch" : "flex-start",
+    flexDirection: isMobile ? "column" : "row",
     gap: "16px",
     flexWrap: "wrap",
     marginBottom: "12px",
-  },
+  }),
 
   distribuicaoTexto: {
     margin: 0,
@@ -316,6 +432,7 @@ const styles = {
     background: "#10284d",
     padding: "6px",
     borderRadius: "12px",
+    width: "fit-content",
   },
 
   toggleButton: {
@@ -373,11 +490,19 @@ const styles = {
     fontWeight: "800",
   },
 
-  formRow: {
+  formGrid: (isMobile) => ({
     display: "grid",
-    gridTemplateColumns: "180px 1fr 220px 160px",
+    gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))",
     gap: "12px",
-    alignItems: "center",
+    alignItems: "end",
+  }),
+
+  label: {
+    display: "block",
+    marginBottom: "6px",
+    fontSize: "14px",
+    color: "#dbeafe",
+    fontWeight: "600",
   },
 
   input: {
@@ -390,8 +515,12 @@ const styles = {
     fontSize: "15px",
   },
 
+  buttonArea: {
+    marginTop: "16px",
+  },
+
   addButton: {
-    padding: "12px 14px",
+    padding: "12px 18px",
     borderRadius: "10px",
     border: "none",
     background: "#2563eb",
@@ -407,40 +536,49 @@ const styles = {
     gap: "12px",
   },
 
-  item: {
+  item: (isMobile) => ({
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: isMobile ? "flex-start" : "center",
+    flexDirection: isMobile ? "column" : "row",
     gap: "16px",
     background: "#10284d",
     borderRadius: "14px",
     padding: "16px 18px",
+  }),
+
+  itemEsquerda: {
+    flex: 1,
+    minWidth: 0,
   },
 
   itemDescricao: {
-    fontSize: "22px",
+    fontSize: "20px",
     fontWeight: "800",
-    marginBottom: "4px",
+    marginBottom: "6px",
   },
 
-  itemTipo: {
-    fontSize: "15px",
+  itemInfo: {
+    fontSize: "14px",
     color: "#b7c8e8",
-    textTransform: "lowercase",
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "6px",
   },
 
-  itemDireita: {
+  itemDireita: (isMobile) => ({
     display: "flex",
     alignItems: "center",
     gap: "12px",
-  },
+    width: isMobile ? "100%" : "auto",
+    justifyContent: isMobile ? "space-between" : "flex-end",
+  }),
 
-  itemValor: {
-    fontSize: "28px",
+  itemValor: (isMobile) => ({
+    fontSize: isMobile ? "22px" : "28px",
     fontWeight: "800",
-    minWidth: "170px",
     textAlign: "right",
-  },
+  }),
 
   deleteButton: {
     width: "34px",
