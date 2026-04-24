@@ -13,7 +13,7 @@ export default function Planejamento() {
   const [idadeAposentadoria, setIdadeAposentadoria] = useState(60);
   const [aporteMensal, setAporteMensal] = useState(500);
 
-  const taxa = 0.01;
+  const taxa = 0.01; // 1% ao mês
 
   function calcular() {
     let dados = [];
@@ -39,8 +39,25 @@ export default function Planejamento() {
 
       <input
         type="number"
+        value={idadeAtual}
+        onChange={(e) => setIdadeAtual(Number(e.target.value))}
+        placeholder="Idade atual"
+      />
+
+      <input
+        type="number"
+        value={idadeAposentadoria}
+        onChange={(e) =>
+          setIdadeAposentadoria(Number(e.target.value))
+        }
+        placeholder="Idade aposentadoria"
+      />
+
+      <input
+        type="number"
         value={aporteMensal}
         onChange={(e) => setAporteMensal(Number(e.target.value))}
+        placeholder="Aporte mensal"
       />
 
       <ResponsiveContainer width="100%" height={300}>
@@ -48,7 +65,11 @@ export default function Planejamento() {
           <XAxis dataKey="idade" />
           <YAxis />
           <Tooltip />
-          <Line type="monotone" dataKey="patrimonio" stroke="#00ff88" />
+          <Line
+            type="monotone"
+            dataKey="patrimonio"
+            stroke="#00ff88"
+          />
         </LineChart>
       </ResponsiveContainer>
     </div>
