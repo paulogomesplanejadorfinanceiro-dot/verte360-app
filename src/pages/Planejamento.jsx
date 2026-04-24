@@ -1,157 +1,157 @@
-import { useMemo, useState } from "react";
+import { useState, useEffect } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from "recharts";
 
 export default function Planejamento() {
-  const [renda, setRenda] = useState("");
-  const [percentualGastos, setPercentualGastos] = useState(50);
-  const [percentualInvestimentos, setPercentualInvestimentos] = useState(30);
-  const [percentualLazer, setPercentualLazer] = useState(20);
 
-  const calculo = useMemo(() => {
-    const rendaNumero = Number(renda || 0);
+  const [idadeAtual, setIdadeAtual] = useState(25);
+  const [idadeAposentadoria, setIdadeAposentadoria] = useState(45);
+  const [aporte, setAporte] = useState(500);
+  const [rendaDesejada, setRendaDesejada] = useState(3000);
+  const [patrimonio, setPatrimonio] = useState(10000);
 
-    const gastos = (rendaNumero * percentualGastos) / 100;
-    const investimentos = (rendaNumero * percentualInvestimentos) / 100;
-    const lazer = (rendaNumero * percentualLazer) / 100;
+  const [dadosGrafico, setDadosGrafico] = useState([]);
+  const [alerta, setAlerta] = useState("");
 
-    return {
-      gastos,
-      investimentos,
-      lazer,
-    };
-  }, [renda, percentualGastos, percentualInvestimentos, percentualLazer]);
+  useEffect(() => {
+    calcularTudo();
+  }, [idadeAtual, idadeAposentadoria, aporte, rendaDesejada, patrimonio]);
 
-  function moeda(valor) {
-    return valor.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    });
+  function calcularTudo() {
+
+    const taxa = 0.01;
+    const inflacao = 0.005;
+
+    let dados = [];
+
+    let p1 = Number(patrimonio);
+    let p2 = Number(patrimonio);
+    let p3 = Number(patrimonio);
+
+    let idadeFalencia = null;
+
+    for (let idade = Number(idadeAtual); idade <= 100; idade++) {
+
+      // 🔴 Cenário 1: consumindo
+      p1 = p1 * (1 + taxa) - rendaDesejada * 12;
+      if (p1 <= 0 && !idadeFalencia) {
+        idadeFalencia = idade;
+      }
+
+      // 🔵 Cenário 2: preservando
+      p2 = p2 * (1 + taxa);
+
+      // 🟢 Cenário 3: crescimento real
+      p3 = p3 * (1 + (taxa - inflacao));
+
+      dados.push({
+        idade,
+        consumir: p1 > 0 ? p1 : 0,
+        preservar: p2,
+        crescer: p3
+      });
+    }
+
+    setDadosGrafico(dados);
+
+    // 🔥 ALERTA INTELIGENTE
+    if (idadeFalencia) {
+      setAlerta(`⚠️ Se continuar assim, seu dinheiro acaba aos ${idadeFalencia} anos`);
+    } else {
+      setAlerta("✅ Seu patrimônio não acaba");
+    }
   }
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>Planejamento</h1>
-      <p style={styles.subtitle}>
-        Defina como seu dinheiro será distribuído.
-      </p>
+    <div style={{ padding: 20 }}>
 
-      <div style={styles.card}>
-        <label style={styles.label}>Renda mensal</label>
+      <h2>Planejamento de Aposentadoria</h2>
+
+      {/* INPUTS */}
+      <div style={{ display: "grid", gap: 10, marginBottom: 20 }}>
+
         <input
-          style={styles.input}
           type="number"
-          placeholder="Ex: 3000"
-          value={renda}
-          onChange={(e) => setRenda(e.target.value)}
+          placeholder="Idade atual"
+          value={idadeAtual}
+          onChange={(e) => setIdadeAtual(e.target.value)}
         />
+
+        <input
+          type="number"
+          placeholder="Idade aposentadoria"
+          value={idadeAposentadoria}
+          onChange={(e) => setIdadeAposentadoria(e.target.value)}
+        />
+
+        <input
+          type="number"
+          placeholder="Patrimônio atual"
+          value={patrimonio}
+          onChange={(e) => setPatrimonio(e.target.value)}
+        />
+
+        <input
+          type="number"
+          placeholder="Aporte mensal"
+          value={aporte}
+          onChange={(e) => setAporte(e.target.value)}
+        />
+
+        <input
+          type="number"
+          placeholder="Renda desejada"
+          value={rendaDesejada}
+          onChange={(e) => setRendaDesejada(e.target.value)}
+        />
+
       </div>
 
-      <div style={styles.card}>
-        <h2>Distribuição (%)</h2>
-
-        <div style={styles.row}>
-          <span>Gastos</span>
-          <input
-            type="number"
-            value={percentualGastos}
-            onChange={(e) => setPercentualGastos(Number(e.target.value))}
-            style={styles.inputSmall}
-          />
-        </div>
-
-        <div style={styles.row}>
-          <span>Investimentos</span>
-          <input
-            type="number"
-            value={percentualInvestimentos}
-            onChange={(e) => setPercentualInvestimentos(Number(e.target.value))}
-            style={styles.inputSmall}
-          />
-        </div>
-
-        <div style={styles.row}>
-          <span>Lazer</span>
-          <input
-            type="number"
-            value={percentualLazer}
-            onChange={(e) => setPercentualLazer(Number(e.target.value))}
-            style={styles.inputSmall}
-          />
-        </div>
+      {/* ALERTA */}
+      <div style={{
+        background: "#1e293b",
+        padding: 10,
+        borderRadius: 10,
+        marginBottom: 20
+      }}>
+        <strong>{alerta}</strong>
       </div>
 
-      <div style={styles.card}>
-        <h2>Resultado</h2>
+      {/* GRÁFICO */}
+      <div style={{ width: "100%", height: 300 }}>
 
-        <div style={styles.result}>
-          <strong>Gastos:</strong> {moeda(calculo.gastos)}
-        </div>
+        <ResponsiveContainer>
+          <LineChart data={dadosGrafico}>
+            <XAxis dataKey="idade" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
 
-        <div style={styles.result}>
-          <strong>Investimentos:</strong> {moeda(calculo.investimentos)}
-        </div>
+            <Line type="monotone" dataKey="consumir" stroke="#ef4444" name="Consumindo patrimônio" />
+            <Line type="monotone" dataKey="preservar" stroke="#3b82f6" name="Preservando" />
+            <Line type="monotone" dataKey="crescer" stroke="#22c55e" name="Crescendo" />
 
-        <div style={styles.result}>
-          <strong>Lazer:</strong> {moeda(calculo.lazer)}
-        </div>
+          </LineChart>
+        </ResponsiveContainer>
+
       </div>
+
+      {/* EXPLICAÇÃO */}
+      <div style={{ marginTop: 20 }}>
+
+        <p>🔴 Consumindo: você gasta tudo → patrimônio acaba</p>
+        <p>🔵 Preservando: mantém o valor</p>
+        <p>🟢 Crescendo: aumenta riqueza</p>
+
+      </div>
+
     </div>
   );
 }
-
-const styles = {
-  container: {
-    padding: "30px",
-    background: "#07152d",
-    minHeight: "100vh",
-    color: "#fff",
-  },
-
-  title: {
-    fontSize: "40px",
-    marginBottom: "5px",
-  },
-
-  subtitle: {
-    marginBottom: "20px",
-    color: "#a0b3d6",
-  },
-
-  card: {
-    background: "#0b1d38",
-    padding: "20px",
-    borderRadius: "12px",
-    marginBottom: "20px",
-  },
-
-  label: {
-    display: "block",
-    marginBottom: "5px",
-  },
-
-  input: {
-    width: "100%",
-    padding: "10px",
-    borderRadius: "8px",
-    border: "none",
-    marginTop: "5px",
-  },
-
-  row: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: "10px",
-  },
-
-  inputSmall: {
-    width: "80px",
-    padding: "5px",
-    borderRadius: "6px",
-    border: "none",
-  },
-
-  result: {
-    marginTop: "10px",
-    fontSize: "18px",
-  },
-};
