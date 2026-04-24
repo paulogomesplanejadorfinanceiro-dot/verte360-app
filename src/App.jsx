@@ -3,34 +3,62 @@ import Sidebar from "./components/Sidebar";
 
 import Dashboard from "./pages/Dashboard";
 import Lancamentos from "./pages/Lancamentos";
-import Relatorios from "./pages/Relatorios";
 import Metas from "./pages/Metas";
-import Investimentos from "./pages/Investimentos";
 import Planejamento from "./pages/Planejamento";
+import Relatorios from "./pages/Relatorios";
 import EducacaoFinanceira from "./pages/EducacaoFinanceira";
+import EmBranco from "./pages/EmBranco"; // 🔥 INVESTIMENTOS
 
 export default function App() {
-  const [page, setPage] = useState("dashboard");
+  const [pagina, setPagina] = useState("dashboard");
 
-  const renderPage = () => {
-    switch (page) {
-      case "dashboard": return <Dashboard />;
-      case "lancamentos": return <Lancamentos />;
-      case "relatorios": return <Relatorios />;
-      case "metas": return <Metas />;
-      case "investimentos": return <Investimentos />;
-      case "planejamento": return <Planejamento />;
-      case "educacao": return <EducacaoFinanceira />;
-      default: return <Dashboard />;
+  function renderPagina() {
+    switch (pagina) {
+      case "dashboard":
+        return <Dashboard />;
+
+      case "lancamentos":
+        return <Lancamentos />;
+
+      case "metas":
+        return <Metas />;
+
+      case "planejamento":
+        return <Planejamento />;
+
+      case "relatorios":
+        return <Relatorios />;
+
+      case "investimentos":
+        return <EmBranco />; // 🔥 aqui é sua aba de investimentos
+
+      case "educacao":
+        return <EducacaoFinanceira />;
+
+      default:
+        return <Dashboard />;
     }
-  };
+  }
 
   return (
-    <div style={{ display: "flex", background: "#0f172a", minHeight: "100vh" }}>
-      <Sidebar setPage={setPage} />
-      <div style={{ flex: 1, padding: 20 }}>
-        {renderPage()}
-      </div>
+    <div style={styles.container}>
+      <Sidebar setPage={setPagina} currentPage={pagina} />
+
+      <main style={styles.main}>
+        {renderPagina()}
+      </main>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    display: "flex",
+    background: "#0f172a",
+    minHeight: "100vh",
+  },
+  main: {
+    flex: 1,
+    padding: "20px",
+  },
+};
