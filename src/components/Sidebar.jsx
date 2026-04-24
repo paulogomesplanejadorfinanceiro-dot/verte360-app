@@ -6,7 +6,7 @@ export default function Sidebar({ setPage, currentPage }) {
     { label: "Planejamento", page: "planejamento", icon: "📅" },
     { label: "Relatórios", page: "relatorios", icon: "📈" },
     { label: "Investimentos", page: "investimentos", icon: "📊" },
-    { label: "Educação Financeira", page: "educacao", icon: "📚" } // 👈 AQUI ESTÁ O QUE FALTAVA
+    { label: "Educação Financeira", page: "educacao", icon: "📚" }
   ];
 
   return (
