@@ -140,6 +140,28 @@ export default function App() {
     await buscarMetas();
   }
 
+  async function adicionarValorMeta(id, valorAdicional) {
+    const meta = metas.find((item) => item.id === id);
+
+    if (!meta) return;
+
+    const novoValorAtual =
+      Number(meta.valor_atual || 0) + Number(valorAdicional || 0);
+
+    const { error } = await supabase
+      .from("metas")
+      .update({ valor_atual: novoValorAtual })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Erro ao atualizar valor da meta:", error);
+      alert(`Erro ao atualizar meta: ${error.message}`);
+      return;
+    }
+
+    await buscarMetas();
+  }
+
   const receitas = lancamentos
     .filter((item) => item.tipo === "receita")
     .reduce((acc, item) => acc + Number(item.valor || 0), 0);
@@ -171,6 +193,7 @@ export default function App() {
           metas={metas}
           onAddMeta={adicionarMeta}
           onRemoveMeta={removerMeta}
+          onAddValorMeta={adicionarValorMeta}
           loading={loadingMetas}
         />
       );
