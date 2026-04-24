@@ -12,7 +12,8 @@ export default function Planejamento() {
   const [idadeAtual, setIdadeAtual] = useState(25);
   const [idadeAposentadoria, setIdadeAposentadoria] = useState(60);
   const [aporteMensal, setAporteMensal] = useState(500);
-  const [taxa, setTaxa] = useState(0.01); // 1% ao mês
+
+  const taxa = 0.01;
 
   function calcular() {
     let dados = [];
@@ -36,28 +37,11 @@ export default function Planejamento() {
     <div style={{ padding: 20 }}>
       <h2>Planejamento Financeiro</h2>
 
-      <div style={{ marginBottom: 20 }}>
-        <input
-          type="number"
-          value={idadeAtual}
-          onChange={(e) => setIdadeAtual(Number(e.target.value))}
-          placeholder="Idade atual"
-        />
-
-        <input
-          type="number"
-          value={idadeAposentadoria}
-          onChange={(e) => setIdadeAposentadoria(Number(e.target.value))}
-          placeholder="Idade aposentadoria"
-        />
-
-        <input
-          type="number"
-          value={aporteMensal}
-          onChange={(e) => setAporteMensal(Number(e.target.value))}
-          placeholder="Aporte mensal"
-        />
-      </div>
+      <input
+        type="number"
+        value={aporteMensal}
+        onChange={(e) => setAporteMensal(Number(e.target.value))}
+      />
 
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={dados}>
