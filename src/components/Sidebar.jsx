@@ -34,17 +34,27 @@ export default function Sidebar({ setPage, currentPage }) {
 const styles = {
   sidebar: {
     width: 250,
+    minHeight: "100vh", /* GARANTE QUE A BARRA VAI ATÉ O FINAL DA TELA NA VERTICAL */
     background: "#020617",
     color: "#fff",
-    padding: 20
+    padding: 20,
+    boxSizing: "border-box", /* EVITA QUE O PADDING EXTRA QUEBRE O TAMANHO FIADO */
+    position: "sticky", /* FAZ A SIDEBAR FICAR FIXA ENQUANTO O USUÁRIO ROLA A PÁGINA */
+    top: 0
   },
   logo: {
-    marginBottom: 30
+    marginBottom: 30,
+    fontSize: "24px",
+    fontWeight: "800",
+    letterSpacing: "0.5px"
   },
   item: {
     padding: 12,
     borderRadius: 8,
     cursor: "pointer",
-    marginBottom: 10
+    marginBottom: 10,
+    display: "flex",
+    alignItems: "center",
+    transition: "background 0.2s ease" /* DEIXA O CLIQUE MAIS SUAVE */
   }
 };
