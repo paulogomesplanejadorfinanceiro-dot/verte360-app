@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 export default function Dashboard({
   lancamentos = [],
   receitas = 0,
@@ -41,77 +43,254 @@ export default function Dashboard({
   const despesasVencendoAmanha = lancamentos.filter(vencendoAmanha);
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
+    <div className="dashboard-container">
+      {/* Estilos CSS Dinâmicos para Celular vs Computador */}
+      <style>{`
+        .dashboard-container {
+          min-height: 100vh;
+          background: #07152d;
+          color: #ffffff;
+          padding: 32px;
+          box-sizing: border-box;
+        }
+
+        .dash-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 16px;
+          flex-wrap: wrap;
+          margin-bottom: 24px;
+        }
+
+        .dash-title {
+          margin: 0;
+          font-size: 48px;
+          font-weight: 800;
+        }
+
+        .dash-subtitle {
+          margin-top: 8px;
+          margin-bottom: 0;
+          font-size: 18px;
+          color: #bfd2f3;
+        }
+
+        .periodo-box {
+          background: #0b1d38;
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 14px;
+          padding: 14px 18px;
+          min-width: 180px;
+        }
+
+        .periodo-label {
+          font-size: 13px;
+          color: #a8c1eb;
+          margin-bottom: 6px;
+        }
+
+        .periodo-valor {
+          font-size: 18px;
+          font-weight: 700;
+          color: #ffffff;
+        }
+
+        /* GRID DE CARDS RESPONSIVO */
+        .dash-cards-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 18px;
+          margin-bottom: 20px;
+        }
+
+        .dash-card {
+          background: #0b1d38;
+          border-radius: 18px;
+          padding: 22px;
+          border: 1px solid rgba(255,255,255,0.08);
+          box-shadow: 0 12px 28px rgba(0,0,0,0.18);
+          display: flex;
+          align-items: flex-start;
+          gap: 14px;
+        }
+
+        .card-icon-green {
+          width: 46px; height: 46px; border-radius: 14px;
+          background: rgba(34,197,94,0.18); color: #22c55e;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 24px; font-weight: 800; flex-shrink: 0;
+        }
+
+        .card-icon-red {
+          width: 46px; height: 46px; border-radius: 14px;
+          background: rgba(239,68,68,0.18); color: #ef4444;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 24px; font-weight: 800; flex-shrink: 0;
+        }
+
+        .card-icon-blue {
+          width: 46px; height: 46px; border-radius: 14px;
+          background: rgba(56,189,248,0.18); color: #38bdf8;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 24px; font-weight: 800; flex-shrink: 0;
+        }
+
+        .dash-card-label {
+          font-size: 18px;
+          font-weight: 700;
+          margin-bottom: 8px;
+        }
+
+        .dash-card-value {
+          font-size: 42px;
+          font-weight: 800;
+          line-height: 1.1;
+          margin-bottom: 8px;
+          word-break: break-all; /* Evita que o texto grande quebre o card */
+        }
+
+        .text-green { color: #22c55e; font-size: 15px; font-weight: 700; }
+        .text-red { color: #ef4444; font-size: 15px; font-weight: 700; }
+
+        .alerta-card {
+          background: #0b1d38;
+          border-radius: 18px;
+          padding: 22px;
+          border: 1px solid rgba(255,255,255,0.08);
+          box-shadow: 0 12px 28px rgba(0,0,0,0.18);
+        }
+
+        .alerta-topo {
+          display: flex; justify-content: space-between; align-items: center;
+          gap: 12px; flex-wrap: wrap; margin-bottom: 16px;
+        }
+
+        .alerta-titulo { font-size: 24px; font-weight: 800; }
+        .alerta-badge {
+          background: rgba(245,158,11,0.18); color: #f59e0b;
+          padding: 8px 12px; border-radius: 999px; font-size: 13px; font-weight: 700;
+        }
+
+        .alerta-lista { display: flex; flexDirection: column; gap: 12px; }
+        
+        .alerta-item {
+          display: flex; justify-content: space-between; align-items: center;
+          gap: 16px; background: #10284d; border-radius: 14px; padding: 16px 18px;
+        }
+
+        .alerta-descricao { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+        .alerta-sub { font-size: 14px; color: #b7c8e8; }
+        .alerta-valor { font-size: 24px; font-weight: 800; color: #f59e0b; text-align: right; min-width: 120px; }
+
+        /* REGRAS EXCLUSIVAS PARA CELULAR (MOBILE) */
+        @media (max-width: 768px) {
+          .dashboard-container {
+            padding: 16px; /* Reduz margens externas */
+          }
+
+          .dash-title {
+            font-size: 32px; /* Título menor para não ocupar a tela toda */
+          }
+
+          .dash-subtitle {
+            font-size: 15px;
+          }
+
+          .periodo-box {
+            width: 100%; /* Box de período ganha destaque total */
+            box-sizing: border-box;
+          }
+
+          .dash-cards-grid {
+            grid-template-columns: 1fr; /* MUDANÇA CRÍTICA: Cards ficam um abaixo do outro */
+            gap: 14px;
+          }
+
+          .dash-card-value {
+            font-size: 32px; /* Fonte ligeiramente menor para caber em qualquer celular sem cortar o R$ 0,00 */
+          }
+          
+          .alerta-item {
+            flex-direction: column; /* Alerta quebra em linhas no celular */
+            align-items: flex-start;
+            gap: 8px;
+          }
+
+          .alerta-valor {
+            text-align: left;
+            min-width: auto;
+          }
+        }
+      `}</style>
+
+      <div className="dash-header">
         <div>
-          <h1 style={styles.title}>Dashboard</h1>
-          <p style={styles.subtitle}>Visão geral da sua vida financeira.</p>
+          <h1 className="dash-title">Dashboard</h1>
+          <p className="dash-subtitle">Visão geral da sua vida financeira.</p>
         </div>
 
-        <div style={styles.periodoBox}>
-          <div style={styles.periodoLabel}>Período</div>
-          <div style={styles.periodoValor}>Resumo atual</div>
+        <div className="periodo-box">
+          <div className="periodo-label">Período</div>
+          <div className="periodo-valor">Resumo atual</div>
         </div>
       </div>
 
-      <div style={styles.cards}>
-        <div style={styles.card}>
-          <div style={styles.cardIconGreen}>↗</div>
+      {/* Grid que agora se adapta conforme o tamanho da tela */}
+      <div className="dash-cards-grid">
+        <div className="dash-card">
+          <div className="card-icon-green">↗</div>
           <div>
-            <div style={styles.cardLabel}>Receitas</div>
-            <div style={styles.cardValue}>{moeda(receitas)}</div>
-            <div style={styles.cardTextGreen}>Total das entradas lançadas</div>
+            <div className="dash-card-label">Receitas</div>
+            <div className="dash-card-value">{moeda(receitas)}</div>
+            <div className="text-green">Total das entradas lançadas</div>
           </div>
         </div>
 
-        <div style={styles.card}>
-          <div style={styles.cardIconRed}>↘</div>
+        <div className="dash-card">
+          <div className="card-icon-red">↘</div>
           <div>
-            <div style={styles.cardLabel}>Despesas</div>
-            <div style={styles.cardValue}>{moeda(despesas)}</div>
-            <div style={styles.cardTextRed}>Total das saídas lançadas</div>
+            <div className="dash-card-label">Despesas</div>
+            <div className="dash-card-value">{moeda(despesas)}</div>
+            <div className="text-red">Total das saídas lançadas</div>
           </div>
         </div>
 
-        <div style={styles.card}>
-          <div style={styles.cardIconBlue}>$</div>
-          <div>
-            <div style={styles.cardLabel}>Saldo</div>
-            <div style={styles.cardValue}>{moeda(saldo)}</div>
-            <div
-              style={
-                saldo >= 0 ? styles.cardTextGreen : styles.cardTextRed
-              }
-            >
-              {saldo >= 0 ? "Saldo atual positivo" : "Saldo atual negativo"}
+        <div className="dash-card">
+          <div className="dash-card">
+            <div className="card-icon-blue">$</div>
+            <div>
+              <div className="dash-card-label">Saldo</div>
+              <div className="dash-card-value">{moeda(saldo)}</div>
+              <div className={`text-${saldo >= 0 ? "green" : "red"}`}>
+                {saldo >= 0 ? "Saldo atual positivo" : "Saldo atual negativo"}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {despesasVencendoAmanha.length > 0 && (
-        <div style={styles.alertaCard}>
-          <div style={styles.alertaTopo}>
-            <div style={styles.alertaTitulo}>Despesas vencendo amanhã</div>
-            <div style={styles.alertaBadge}>Atenção</div>
+        <div className="alerta-card">
+          <div className="alerta-topo">
+            <div className="alerta-titulo">Despesas vencendo amanhã</div>
+            <div className="alerta-badge">Atenção</div>
           </div>
 
-          <div style={styles.alertaLista}>
+          <div className="alerta-lista">
             {despesasVencendoAmanha.map((item) => (
-              <div key={item.id} style={styles.alertaItem}>
+              <div key={item.id} className="alerta-item">
                 <div>
-                  <div style={styles.alertaDescricao}>
+                  <div className="alerta-descricao">
                     {item.descricao || "Despesa recorrente"}
                   </div>
-                  <div style={styles.alertaSub}>
+                  <div className="alerta-sub">
                     Vence amanhã
-                    {item.dia_vencimento
-                      ? ` • Dia ${item.dia_vencimento}`
-                      : ""}
+                    {item.dia_vencimento ? ` • Dia ${item.dia_vencimento}` : ""}
                   </div>
                 </div>
 
-                <div style={styles.alertaValor}>{moeda(item.valor)}</div>
+                <div className="alerta-valor">{moeda(item.valor)}</div>
               </div>
             ))}
           </div>
@@ -120,206 +299,3 @@ export default function Dashboard({
     </div>
   );
 }
-
-const styles = {
-  container: {
-    minHeight: "100vh",
-    background: "#07152d",
-    color: "#ffffff",
-    padding: "32px",
-    boxSizing: "border-box",
-  },
-
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: "16px",
-    flexWrap: "wrap",
-    marginBottom: "24px",
-  },
-
-  title: {
-    margin: 0,
-    fontSize: "48px",
-    fontWeight: "800",
-  },
-
-  subtitle: {
-    marginTop: "8px",
-    marginBottom: 0,
-    fontSize: "18px",
-    color: "#bfd2f3",
-  },
-
-  periodoBox: {
-    background: "#0b1d38",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: "14px",
-    padding: "14px 18px",
-    minWidth: "180px",
-  },
-
-  periodoLabel: {
-    fontSize: "13px",
-    color: "#a8c1eb",
-    marginBottom: "6px",
-  },
-
-  periodoValor: {
-    fontSize: "18px",
-    fontWeight: "700",
-    color: "#ffffff",
-  },
-
-  cards: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-    gap: "18px",
-    marginBottom: "20px",
-  },
-
-  card: {
-    background: "#0b1d38",
-    borderRadius: "18px",
-    padding: "22px",
-    border: "1px solid rgba(255,255,255,0.08)",
-    boxShadow: "0 12px 28px rgba(0,0,0,0.18)",
-    display: "flex",
-    alignItems: "flex-start",
-    gap: "14px",
-  },
-
-  cardIconGreen: {
-    width: "46px",
-    height: "46px",
-    borderRadius: "14px",
-    background: "rgba(34,197,94,0.18)",
-    color: "#22c55e",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "24px",
-    fontWeight: "800",
-    flexShrink: 0,
-  },
-
-  cardIconRed: {
-    width: "46px",
-    height: "46px",
-    borderRadius: "14px",
-    background: "rgba(239,68,68,0.18)",
-    color: "#ef4444",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "24px",
-    fontWeight: "800",
-    flexShrink: 0,
-  },
-
-  cardIconBlue: {
-    width: "46px",
-    height: "46px",
-    borderRadius: "14px",
-    background: "rgba(56,189,248,0.18)",
-    color: "#38bdf8",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "24px",
-    fontWeight: "800",
-    flexShrink: 0,
-  },
-
-  cardLabel: {
-    fontSize: "18px",
-    fontWeight: "700",
-    marginBottom: "8px",
-  },
-
-  cardValue: {
-    fontSize: "42px",
-    fontWeight: "800",
-    lineHeight: 1.1,
-    marginBottom: "8px",
-  },
-
-  cardTextGreen: {
-    color: "#22c55e",
-    fontSize: "15px",
-    fontWeight: "700",
-  },
-
-  cardTextRed: {
-    color: "#ef4444",
-    fontSize: "15px",
-    fontWeight: "700",
-  },
-
-  alertaCard: {
-    background: "#0b1d38",
-    borderRadius: "18px",
-    padding: "22px",
-    border: "1px solid rgba(255,255,255,0.08)",
-    boxShadow: "0 12px 28px rgba(0,0,0,0.18)",
-  },
-
-  alertaTopo: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: "12px",
-    flexWrap: "wrap",
-    marginBottom: "16px",
-  },
-
-  alertaTitulo: {
-    fontSize: "24px",
-    fontWeight: "800",
-  },
-
-  alertaBadge: {
-    background: "rgba(245,158,11,0.18)",
-    color: "#f59e0b",
-    padding: "8px 12px",
-    borderRadius: "999px",
-    fontSize: "13px",
-    fontWeight: "700",
-  },
-
-  alertaLista: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-  },
-
-  alertaItem: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: "16px",
-    background: "#10284d",
-    borderRadius: "14px",
-    padding: "16px 18px",
-  },
-
-  alertaDescricao: {
-    fontSize: "18px",
-    fontWeight: "800",
-    marginBottom: "4px",
-  },
-
-  alertaSub: {
-    fontSize: "14px",
-    color: "#b7c8e8",
-  },
-
-  alertaValor: {
-    fontSize: "24px",
-    fontWeight: "800",
-    color: "#f59e0b",
-    textAlign: "right",
-    minWidth: "120px",
-  },
-};
